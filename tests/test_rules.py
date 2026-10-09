@@ -95,6 +95,24 @@ class NightLight(unittest.TestCase):
         self.assertEqual(tidy.applied, [])
 
 
+class FullScreenOfOneProgram(unittest.TestCase):
+    def test_any_program_when_none_is_named(self):
+        tidy = fake([])
+        tidy.on_active_window("firefox", True)
+        self.assertTrue(tidy.rule_matches({"when": "fullscreen", "arg": ""}))
+        self.assertTrue(tidy.rule_matches({"when": "fullscreen"}))
+
+    def test_only_the_named_program(self):
+        tidy = fake([])
+        rule = {"when": "fullscreen", "arg": "MPV"}
+        tidy.on_active_window("firefox", True)
+        self.assertFalse(tidy.rule_matches(rule))
+        tidy.on_active_window("mpv", True)
+        self.assertTrue(tidy.rule_matches(rule))
+        tidy.on_active_window("mpv", False)          # in front, but in a window
+        self.assertFalse(tidy.rule_matches(rule))
+
+
 class FocusMode(unittest.TestCase):
     RULES = [{"when": "fullscreen", "then": "focus"}, {"when": "vdesktop", "arg": "2", "then": "focus"}]
 

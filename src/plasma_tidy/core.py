@@ -1167,8 +1167,8 @@ class Tidy(QObject):
             return now >= start or now < end  # over midnight
         if when == "app":
             return bool(arg) and arg.lower() == self.active_class.lower()
-        if when == "fullscreen":
-            return self.active_fullscreen
+        if when == "fullscreen":   # of any program, or only of the one that is named
+            return self.active_fullscreen and (not arg or arg.lower() == self.active_class.lower())
         if when == "vdesktop":
             return arg == str(self.vdesktop)
         if when == "activity":

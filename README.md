@@ -336,7 +336,7 @@ for as long as something is the case:
 | An external screen is connected | While more than one screen is in use |
 | Between these times | Between the two times you set, also across midnight |
 | This program is in front | While a window of that program is the active one |
-| A program fills the whole screen | While the active window is in full screen |
+| A program fills the whole screen | While the active window is in full screen: of any program, or only of the one you name |
 | On this virtual desktop / In this activity | While you are on it |
 
 For the profile, the highest rule that applies decides; move a rule up or down with its
@@ -344,7 +344,7 @@ arrows. *Otherwise* names the profile for when no rule with a profile applies. F
 on while any rule that asks for it applies, and goes off again when none does.
 
 *Night light off* gives true colours for as long as the rule applies, for a film or for photo
-work: for instance *This program is in front: mpc-qt*, or *A program fills the whole screen*.
+work: for instance *A program fills the whole screen* with your film player named.
 The night light comes back by itself when the rule no longer applies, and also if Tidy stops.
 
 A profile is put to use at the moment the choice changes. What you change by hand afterwards

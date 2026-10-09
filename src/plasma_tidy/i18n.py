@@ -531,6 +531,8 @@ TRANSLATIONS = {
             "Een regel gebruikt een van je profielen, zet de focusmodus aan, of houdt het nachtlicht uit, zolang iets het geval is. Voor het profiel beslist de bovenste regel die geldt. Profielen maak je op het tabblad Algemeen.",
         "Night light off":
             "Nachtlicht uit",
+        "Any program":
+            "Elk programma",
         "No rules yet.":
             "Nog geen regels.",
         "Add a rule":

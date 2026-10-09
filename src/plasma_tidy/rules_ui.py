@@ -53,8 +53,7 @@ class RuleRow(QWidget):
         # program
         self.program = QComboBox(editable=True)
         self.program.addItems(sorted(autohide.seen_classes, key=str.lower))
-        self.program.setEditText(arg if rule.get("when") == "app" else "")
-        self.program.lineEdit().setPlaceholderText(tr("Program name"))
+        self.program.setEditText(arg if rule.get("when") in ("app", "fullscreen") else "")
         self.program.setToolTip(tr("The list holds the programs that are open now. You can "
                                    "also type the name."))
         self.stack.addWidget(self.program)
@@ -79,7 +78,7 @@ class RuleRow(QWidget):
         self.stack.addWidget(self.activity)
         self.stack.setFixedHeight(self.when.sizeHint().height())
         layout.addWidget(self.stack, 1)
-        self.pages = {"time": 1, "app": 2, "vdesktop": 3, "activity": 4}
+        self.pages = {"time": 1, "app": 2, "fullscreen": 2, "vdesktop": 3, "activity": 4}
         self.when.currentIndexChanged.connect(self.update_page)
         self.update_page()
 
@@ -98,7 +97,11 @@ class RuleRow(QWidget):
             layout.addWidget(button)
 
     def update_page(self):
-        self.stack.setCurrentIndex(self.pages.get(self.when.currentData(), 0))
+        when = self.when.currentData()
+        self.stack.setCurrentIndex(self.pages.get(when, 0))
+        # Full screen goes for every program unless one is named.
+        self.program.lineEdit().setPlaceholderText(
+            tr("Any program") if when == "fullscreen" else tr("Program name"))
 
     def update_programs(self):
         """Fill the list of programs anew; what was typed or chosen stays."""
@@ -127,6 +130,7 @@ class RuleRow(QWidget):
         when = self.when.currentData()
         arg = {"time": self.start.time().toString("HH:mm") + "-" + self.end.time().toString("HH:mm"),
                "app": self.program.currentText().strip(),
+               "fullscreen": self.program.currentText().strip(),
                "vdesktop": self.vdesktop.currentData() or "",
                "activity": self.activity.currentData() or ""}.get(when, "")
         kind, _, name = self.then.currentData().partition(":")
