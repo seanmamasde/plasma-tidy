@@ -86,6 +86,8 @@ TRANSLATIONS = {
             "en haalt ze terug als je op het pijltje klikt of het aanwijst.",
         "Drawer:": "La:",
         "Drawers": "Laden",
+        "Settings of this folder: its icon, title, sorting and more":
+            "Instellingen van deze map: pictogram, titel, sortering en meer",
         "Search the settings…": "Zoek in de instellingen…",
         "A panel that hides": "Een paneel dat zich verbergt",
         "Drawer {n}": "La {n}",

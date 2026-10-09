@@ -5,6 +5,7 @@
 import json
 import os
 import re
+import time
 
 from PyQt6.QtCore import QLibraryInfo, QProcess, QStandardPaths, QUrl
 from PyQt6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
@@ -353,6 +354,7 @@ class Plasma:
                 if (!w || !w.id) return;
                 w.currentConfigGroup = ["General"];
                 w.writeConfig("url", url);
+                w.writeConfig("sortMode", 1);   // by name, folders first: easy to find things
                 w.reloadConfig();
                 // New widgets come at the end of the panel. Contents before the arrow: take
                 // the arrow's place, which pushes it along. Otherwise: right behind it.
@@ -365,6 +367,11 @@ class Plasma:
         except ValueError:
             return None
         return new_id if new_id >= 0 else None
+
+    def configure_folder(self, drawer_id, widget_id):
+        """Open the settings window of a folder in the panel: Plasma's own, of that widget.
+        The drawer does it: Plasma's scripting cannot. The number makes every ask a new one."""
+        self.set_drawer_config(drawer_id, {"ask": "configure:%d:%d" % (widget_id, time.time() * 10)})
 
     def remove_folder(self, widget_id):
         """Take a folder out of the panel again. Only ever a Folder View widget."""

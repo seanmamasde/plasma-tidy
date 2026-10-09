@@ -57,5 +57,6 @@
     <entry name="textSettings" type="String"><default>Tidy settings…</default></entry>
     <entry name="textPaused" type="String"><default>Paused. Click to resume</default></entry>
     <entry name="debug" type="String"><default></default></entry>
+    <entry name="ask" type="String"><default></default></entry>
   </group>
 </kcfg>

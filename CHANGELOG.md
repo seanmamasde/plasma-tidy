@@ -13,6 +13,10 @@
 - A search field at the top of the settings window. Type a word, pick a setting from the
   list, and the window opens the right tab and marks the setting. It finds the names of
   settings, the choices in their lists, and the names of tabs and groups.
+- A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
+  in the panel already stay as they are.)
+- A settings button next to each folder in a drawer's *In this drawer* list opens that
+  folder's own settings: its icon, title, sorting and more.
 
 ## 0.3.5 — 2026-10-07
 

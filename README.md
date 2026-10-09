@@ -171,7 +171,7 @@ The settings of a drawer come in three parts.
 | Setting | What it does | Default |
 | --- | --- | --- |
 | In this drawer | Which of the panel's widgets the drawer hides | the task manager |
-| Add a folder… | Puts a folder in the panel, in this drawer, for quick access: a click on it shows what is in the folder. It is Plasma's own *Folder View* widget, called after its folder in the list. The × next to it takes it out of the panel again | none |
+| Add a folder… | Puts a folder in the panel, in this drawer, for quick access: a click on it shows what is in the folder. It is Plasma's own *Folder View* widget, called after its folder in the list, and sorts its contents by name with folders first. The settings button next to it opens the folder's own settings (icon, title, sorting and more); the × takes it out of the panel again | none |
 | Task manager | Hide only the pinned programs that are not open, so open programs stay in the panel; or all programs, open ones too | only pinned programs that are not open |
 | Open programs | Where open programs stand in the task manager: on their pinned spot, all in front, or all at the back | pinned spot |
 | Programs that go in the drawer | Per program of the task manager: in the drawer, or kept in the panel also while the drawer is closed | all of them |

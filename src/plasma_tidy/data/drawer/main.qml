@@ -2151,6 +2151,23 @@ PlasmoidItem {
         function onTargetsChanged() { root.syncPinned(); root.syncFill(); }
         function onPlaceChanged() { root.syncFill(); }
         function onPausedChanged() { root.syncPinned(); root.syncFill(); root.trimTips(); }
+        function onAskChanged() {
+            // Tidy asks for something that only a widget in the panel can do, as
+            // "configure:<widget id>:<any number>": open the settings of a neighbour (a
+            // folder). Plasma's scripting has a call for that, but it does nothing.
+            var ask = String(root.cfg.ask).split(":");
+            if (ask[0] !== "configure" || !ask[1]) return;
+            var c = root.parent, hops = 0;
+            while (c && !c.isAppletContainer && hops < 8) { c = c.parent; hops++; }
+            if (!c || !c.isAppletContainer || !c.parent) return;
+            var kids = c.parent.children;
+            for (var i = 0; i < kids.length; i++) {
+                try {
+                    var applet = kids[i].applet.plasmoid;
+                    if (String(applet.id) === ask[1]) applet.internalAction("configure").trigger();
+                } catch (e) {}
+            }
+        }
         function onDebugChanged() {
             // For testing: opens the widget's own settings.
             if (root.cfg.debug === "configure") Plasmoid.internalAction("configure").trigger();

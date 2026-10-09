@@ -77,6 +77,11 @@ class DrawerPage(QWidget):
                 # A folder was put in the panel for a drawer: it can go from here as well.
                 line = QHBoxLayout()
                 line.addWidget(check, 1)
+                more = QPushButton(QIcon.fromTheme("configure"), "")
+                more.setFlat(True)
+                more.setToolTip(tr("Settings of this folder: its icon, title, sorting and more"))
+                more.clicked.connect(lambda _=False, i=widget["id"]: folders.configure_folder(self, i))
+                line.addWidget(more)
                 gone = QPushButton(QIcon.fromTheme("list-remove"), "")
                 gone.setFlat(True)
                 gone.setToolTip(tr("Take this folder out of the panel"))
@@ -729,6 +734,9 @@ class DrawerTab(QWidget):
         self.plasma.set_drawer_config(drawer["id"], {"targets": targets})
         self.plasma.place_drawer(drawer["id"], targets, drawer["config"]["place"])
         self.rebuild(select=drawer["id"])
+
+    def configure_folder(self, page, widget_id):
+        self.plasma.configure_folder(page.drawer["id"], widget_id)
 
     def remove_folder(self, page, widget_id):
         self.apply()
