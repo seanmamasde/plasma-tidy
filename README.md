@@ -136,7 +136,6 @@ change something.
 | Screen corner shows | Moving the mouse into this corner shows the icons | none |
 | **What hides along** | | |
 | Also hide the panel (taskbar) | Auto-hides the panel while the icons are hidden | off |
-| Show the panel | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide, and stays while the pointer is on it | never |
 | Also hide the widgets on the desktop | Clocks, notes and other widgets on the desktop go and come with the icons. With widgets on the desktop, a list below it lets you choose per widget: without a tick it stays in view. Needs the helper widget | off, all widgets |
 | Hide the icons on | With more than one screen: the screens whose icons are hidden; the others keep theirs | every screen |
 | **How it is done** | | |
@@ -148,9 +147,9 @@ change something.
 If the screen corner you pick already has an action in System Settings → Screen Edges, both
 will fire.
 
-### Panel
+### Drawers
 
-The *Panel* tab adds drawers to your panel. A drawer is a small arrow that tucks the widgets
+The *Drawers* tab adds drawers to your panel. A drawer is a small arrow that tucks the widgets
 you choose away. Click the arrow to close or open the drawer. If you like, it also opens when
 you point at the arrow, and closes by itself or on a click on an empty spot of the panel.
 
@@ -215,7 +214,15 @@ The settings of a drawer come in three parts.
 Below the drawers, *All drawers: close and open together with the desktop icons* makes every
 drawer follow Tidy's hiding and showing of the desktop icons (off by default).
 
-Under that, *Balloons and previews* is about what comes up when you point at something in the
+### Panel
+
+The *Panel* tab is about the panel as a whole.
+
+| Setting | What it does | Default |
+| --- | --- | --- |
+| Show the panel | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide, and stays while the pointer is on it | never |
+
+*Balloons and previews* is about what comes up when you point at something in the
 panel. The balloons switch and the pop-up with or without a preview are Plasma's own settings,
 shown as they are now; the rest is done by a drawer:
 
@@ -508,14 +515,14 @@ tray menu: both restore the original folder. If that doesn't help, right-click t
 Configure Desktop and Wallpaper → Location, and set it back to *Desktop folder*.
 
 **A widget stays hidden in the panel.** Click the drawer's arrow, or remove the drawer in the
-*Panel* tab: both bring everything back. Restarting Plasma (log out and in) does too.
+*Drawers* tab: both bring everything back. Restarting Plasma (log out and in) does too.
 
 **Something is hidden and I don't know why.** Choose *Restore everything* in Tidy's tray menu,
 or run `plasma-tidy --restore`.
 
 ## Uninstall
 
-Remove your drawers in the *Panel* tab, switch off *Hide with a helper widget on the
+Remove your drawers in the *Drawers* tab, switch off *Hide with a helper widget on the
 desktop*, clear the peek key, and quit Tidy from the tray menu, so your panel and desktop are
 as they were. Then remove the program: the package with `sudo dnf remove plasma-tidy`, or
 the files of an install from source:

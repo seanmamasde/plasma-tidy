@@ -210,6 +210,9 @@ class SettingsDialog(QDialog):
         self.drawer_tab = DrawerTab(autohide)
         tabs.addTab(self.drawer_tab,
                     QIcon.fromTheme("sidebar-collapse-left", QIcon.fromTheme("arrow-left")),
+                    tr("Drawers"))
+        panel_tab = QWidget()
+        tabs.addTab(panel_tab, QIcon.fromTheme("show-menu", QIcon.fromTheme("view-list-icons")),
                     tr("Panel"))
         self.tray_tab = TrayTab(autohide.plasma, settings)
         tabs.addTab(self.tray_tab, QIcon.fromTheme("preferences-desktop-notification"),
@@ -334,17 +337,6 @@ class SettingsDialog(QDialog):
         self.panel.setChecked(settings.value("hide_panel", False, bool))
         form.addRow(self.panel)
 
-        self.panel_after = QComboBox()
-        for key, label in PANEL_AFTERS:
-            self.panel_after.addItem(tr(label), key)
-        self.panel_after.setCurrentIndex(max(0, self.panel_after.findData(
-            settings.value("panel_after", PANEL_AFTER_NEVER))))
-        self.panel_after.setToolTip(tr(
-            "A panel that is hidden, by Tidy or by itself, comes into view when you put a "
-            "window away, so you can go straight to the next program. It goes again after "
-            "the time above, and stays while the pointer is on it."))
-        form.addRow(tr("Show the panel:"), self.panel_after)
-
         self.hide_widgets = QCheckBox(tr("Also hide the widgets on the desktop"))
         self.hide_widgets.setChecked(settings.value("hide_widgets", False, bool))
         self.hide_widgets.setToolTip(tr("Clocks, notes and other widgets on the desktop go and "
@@ -416,6 +408,25 @@ class SettingsDialog(QDialog):
         form.addRow(row)
 
         layout.addStretch()
+
+        # --- panel: what is about the panel as a whole ---
+        panel_layout = QVBoxLayout(panel_tab)
+        box = QGroupBox(tr("A panel that hides"))
+        form = QFormLayout(box)
+        panel_layout.addWidget(box)
+        self.panel_after = QComboBox()
+        for key, label in PANEL_AFTERS:
+            self.panel_after.addItem(tr(label), key)
+        self.panel_after.setCurrentIndex(max(0, self.panel_after.findData(
+            settings.value("panel_after", PANEL_AFTER_NEVER))))
+        self.panel_after.setToolTip(tr(
+            "A panel that is hidden, by Tidy or by itself, comes into view when you put a "
+            "window away, so you can go straight to the next program. It goes again after "
+            "the time on the Desktop tab, and stays while the pointer is on it."))
+        form.addRow(tr("Show the panel:"), self.panel_after)
+
+        panel_layout.addWidget(self.drawer_tab.tips_box)
+        panel_layout.addStretch()
 
         # --- general ---
         form = QFormLayout(general_tab)
@@ -550,7 +561,7 @@ class SettingsDialog(QDialog):
         self.update_enabled()
 
         # As tall as the tallest tab asks for, as far as the screen has room: in less the
-        # Panel tab scrolls. (Left to itself Qt opens a window at two thirds of the screen.)
+        # Drawers tab scrolls. (Left to itself Qt opens a window at two thirds of the screen.)
         wanted = self.sizeHint()
         screen = QApplication.primaryScreen()
         room = screen.availableGeometry().height() - 80 if screen else wanted.height()

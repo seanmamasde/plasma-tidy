@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Ivar
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The Panel tab: the settings of the drawers."""
+"""The Drawers tab: the settings of the drawers."""
 
 import json
 import os
@@ -625,7 +625,8 @@ class DrawerTab(QWidget):
         form.addRow(self.task_gap)
         self.task_popup.currentIndexChanged.connect(self.update_tips)
         self.update_tips()
-        layout.addWidget(box)
+        # About the panel as a whole, not about drawers: the window shows it on its Panel tab.
+        self.tips_box = box
         layout.addStretch()
         self.rebuild()
 

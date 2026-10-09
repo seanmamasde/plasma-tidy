@@ -7,6 +7,9 @@
 - One choice instead of two for how the icons come back: on any movement or key press, on a
   click on the desktop, or on a double-click on the desktop. What only goes with a click
   shows only then. Your own settings stay as they are.
+- The *Panel* tab is called *Drawers* now, because drawers is what it holds. A new *Panel*
+  tab has what is about the panel as a whole: *Show the panel* (it was on *Desktop*) and
+  *Balloons and previews* (it was below the drawers).
 
 ## 0.3.5 — 2026-10-07
 
