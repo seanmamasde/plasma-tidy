@@ -78,6 +78,8 @@ class FakeTidy:
         self.popup_open = self.showing_desktop = False
         self.focus = self.hold_icons = self.peeking = self.quitting = False
         self.rule_focus = False
+        self.night_cookie = None
+        self.night_light = []
         self.rule_kinds = set()
         self.active_class, self.active_fullscreen = "", False
         self.seen_classes, self.vdesktop, self.vdesktop_names = set(), 1, []
@@ -120,6 +122,11 @@ class FakeTidy:
 
     def set_focus(self, on):
         self.focus = on
+
+    def hold_night_light(self, off):
+        if off != (self.night_cookie is not None):
+            self.night_light.append(off)
+            self.night_cookie = 1 if off else None
 
     def busy(self):
         return False

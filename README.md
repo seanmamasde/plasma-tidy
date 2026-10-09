@@ -327,8 +327,8 @@ drawers stay, with what is in them, and the system tray is left alone.
 
 ### Rules
 
-A rule uses one of your profiles, or switches focus mode on, for as long as something is the
-case:
+A rule uses one of your profiles, switches focus mode on, or keeps Plasma's night light off,
+for as long as something is the case:
 
 | When | Applies |
 | --- | --- |
@@ -342,6 +342,10 @@ case:
 For the profile, the highest rule that applies decides; move a rule up or down with its
 arrows. *Otherwise* names the profile for when no rule with a profile applies. Focus mode is
 on while any rule that asks for it applies, and goes off again when none does.
+
+*Night light off* gives true colours for as long as the rule applies, for a film or for photo
+work: for instance *This program is in front: mpc-qt*, or *A program fills the whole screen*.
+The night light comes back by itself when the rule no longer applies, and also if Tidy stops.
 
 A profile is put to use at the moment the choice changes. What you change by hand afterwards
 stays until the next change, so save it in the profile if you want to keep it. A ✓ in front

@@ -8,8 +8,9 @@ import shutil
 import sys
 import time
 
-from PyQt6.QtCore import QObject, QProcess, QSettings, QTimer, pyqtSlot
-from PyQt6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage, QDBusServiceWatcher
+from PyQt6.QtCore import QMetaType, QObject, QProcess, QSettings, QTimer, pyqtSlot
+from PyQt6.QtDBus import (QDBusArgument, QDBusConnection, QDBusInterface, QDBusMessage,
+                          QDBusServiceWatcher)
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from PyQt6.QtWidgets import QCheckBox, QMenu, QMessageBox, QSystemTrayIcon, QWidget
 
@@ -21,7 +22,7 @@ from .consts import (APP, APP_ICON, APP_NAME, AUTOSTART, BUTTONS, CLICKS_DOUBLE,
                      PANEL_SETTLE,
                      PROFILE_SETTINGS,
                      TASK_POPUPS_PREVIEW,
-                     REHIDE_FIXED, REHIDE_IDLE, RULE_FOCUS, RULE_PROFILE, TRAY_HIDDEN, TRAY_ICON,
+                     REHIDE_FIXED, REHIDE_IDLE, RULE_FOCUS, RULE_NIGHT_LIGHT, RULE_PROFILE, TRAY_HIDDEN, TRAY_ICON,
                      TRAY_ICON_HIDDEN, TRAY_SHOWN,
                      VERSION)
 from .i18n import set_language, tr
@@ -73,6 +74,7 @@ class Tidy(QObject):
         self.peeking = False        # the peek key is held: everything is shown for a moment
         self.peek_state = None
         self.rule_focus = False     # focus mode was switched on by a rule
+        self.night_cookie = None    # held while a rule keeps the night light off
         self.rule_kinds = set()
         self.active_class = ""      # the program in front, and whether it fills the screen
         self.active_fullscreen = False
@@ -801,6 +803,7 @@ class Tidy(QObject):
             self.rule_focus = False
             self.peek(False)
             self.set_focus(False)
+            self.hold_night_light(False)
             self.stop_idle()
             self.show()
             self.suspend()
@@ -1232,6 +1235,24 @@ class Tidy(QObject):
         elif not focus and self.rule_focus:
             self.rule_focus = False
             self.set_focus(False)
+        self.hold_night_light(any(r.get("then") == RULE_NIGHT_LIGHT for r in matching))
+
+    def hold_night_light(self, off):
+        """Keep Plasma's night light off for as long as a rule asks: true colours for a film
+        or for photo work. KWin lets go by itself should Tidy stop without saying so."""
+        if off == (self.night_cookie is not None):
+            return
+        kwin = QDBusInterface("org.kde.KWin", "/org/kde/KWin/NightLight",
+                              "org.kde.KWin.NightLight", QDBusConnection.sessionBus())
+        kwin.setTimeout(1000)
+        if off:
+            args = kwin.call("inhibit").arguments()
+            self.night_cookie = args[0] if args and isinstance(args[0], int) else None
+        else:
+            cookie = QDBusArgument()
+            cookie.add(self.night_cookie, QMetaType.Type.UInt.value)   # KWin wants it unsigned
+            kwin.call("uninhibit", cookie)
+            self.night_cookie = None
 
     # --- new icons in the system tray ---------------------------------------------
 

@@ -74,6 +74,27 @@ class Profiles(unittest.TestCase):
         self.assertEqual(tidy.applied, [])
 
 
+class NightLight(unittest.TestCase):
+    RULES = [{"when": "app", "arg": "mpc-qt", "then": "nightlight"}]
+
+    def test_off_while_the_program_is_in_front_and_back_after(self):
+        tidy = fake(self.RULES)
+        tidy.on_active_window("mpc-qt", False)
+        tidy.evaluate_rules()
+        tidy.evaluate_rules()                    # asked once, however often it is looked at
+        self.assertEqual(tidy.night_light, [True])
+        tidy.on_active_window("dolphin", False)
+        tidy.evaluate_rules()
+        self.assertEqual(tidy.night_light, [True, False])
+
+    def test_it_leaves_the_profile_and_focus_mode_alone(self):
+        tidy = fake(self.RULES)
+        tidy.on_active_window("mpc-qt", False)
+        tidy.evaluate_rules()
+        self.assertFalse(tidy.focus)
+        self.assertEqual(tidy.applied, [])
+
+
 class FocusMode(unittest.TestCase):
     RULES = [{"when": "fullscreen", "then": "focus"}, {"when": "vdesktop", "arg": "2", "then": "focus"}]
 

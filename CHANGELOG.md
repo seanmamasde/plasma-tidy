@@ -13,6 +13,8 @@
 - A search field at the top of the settings window. Type a word, pick a setting from the
   list, and the window opens the right tab and marks the setting. It finds the names of
   settings, the choices in their lists, and the names of tabs and groups.
+- Rules can keep Plasma's night light off: true colours while a program is in front or fills
+  the screen, for a film or photo work. It comes back by itself afterwards.
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

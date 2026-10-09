@@ -200,6 +200,7 @@ RULE_WHEN = [("battery", "On battery"), ("mains", "On mains power"),
              ("activity", "In this activity")]
 RULE_FOCUS = "focus"
 RULE_PROFILE = "profile"
+RULE_NIGHT_LIGHT = "nightlight"
 CLICKS_SINGLE = "single"
 CLICKS_DOUBLE = "double"
 PEEK_ACTION = [APP, "peek", APP_NAME, "Peek: show everything while held"]

@@ -527,8 +527,10 @@ TRANSLATIONS = {
             "Naam van het programma",
         "The list holds the programs that are open now. You can also type the name.":
             "In de lijst staan de programma's die nu open zijn. Je kunt de naam ook typen.",
-        "A rule uses one of your profiles, or switches focus mode on, for as long as something is the case. For the profile the highest rule that applies decides. You make profiles on the General tab.":
-            "Een regel gebruikt een van je profielen, of zet de focusmodus aan, zolang iets het geval is. Voor het profiel beslist de bovenste regel die geldt. Profielen maak je op het tabblad Algemeen.",
+        "A rule uses one of your profiles, switches focus mode on, or keeps the night light off, for as long as something is the case. For the profile the highest rule that applies decides. You make profiles on the General tab.":
+            "Een regel gebruikt een van je profielen, zet de focusmodus aan, of houdt het nachtlicht uit, zolang iets het geval is. Voor het profiel beslist de bovenste regel die geldt. Profielen maak je op het tabblad Algemeen.",
+        "Night light off":
+            "Nachtlicht uit",
         "No rules yet.":
             "Nog geen regels.",
         "Add a rule":

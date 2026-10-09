@@ -9,7 +9,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (QComboBox, QFormLayout, QHBoxLayout, QLabel, QPushButton,
                              QSizePolicy, QStackedWidget, QTimeEdit, QVBoxLayout, QWidget)
 
-from .consts import RULE_FOCUS, RULE_PROFILE, RULE_WHEN
+from .consts import RULE_FOCUS, RULE_NIGHT_LIGHT, RULE_PROFILE, RULE_WHEN
 from .i18n import tr
 
 
@@ -116,6 +116,7 @@ class RuleRow(QWidget):
         self.then.blockSignals(True)
         self.then.clear()
         self.then.addItem(tr("Focus mode"), RULE_FOCUS + ":")
+        self.then.addItem(tr("Night light off"), RULE_NIGHT_LIGHT + ":")
         kind, _, wanted = self.wanted.partition(":")
         for name in sorted(set(names) | ({wanted} if kind == RULE_PROFILE and wanted else set())):
             self.then.addItem(tr("Profile: {name}").format(name=name), RULE_PROFILE + ":" + name)
@@ -141,9 +142,10 @@ class RulesTab(QWidget):
         self.rows = []
         self.activity_names = autohide.activities()[0]
         layout = QVBoxLayout(self)
-        intro = QLabel(tr("A rule uses one of your profiles, or switches focus mode on, for as "
-                          "long as something is the case. For the profile the highest rule that "
-                          "applies decides. You make profiles on the General tab."))
+        intro = QLabel(tr("A rule uses one of your profiles, switches focus mode on, or keeps "
+                          "the night light off, for as long as something is the case. For the "
+                          "profile the highest rule that applies decides. You make profiles on "
+                          "the General tab."))
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
