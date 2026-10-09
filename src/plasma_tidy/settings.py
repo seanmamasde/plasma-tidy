@@ -242,57 +242,15 @@ class SettingsDialog(QDialog):
         status_layout.addLayout(row)
         layout.addWidget(status)
 
-        # --- settings ---
-        form = QFormLayout()
-        layout.addLayout(form)
+        # --- settings, in the order of the story: when they go, how they come back, what
+        # goes along, and how it is done ---
+        box = QGroupBox(tr("When the icons hide"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
 
         self.timeout = QSpinBox(suffix=" s", minimum=3, maximum=3600)
         self.timeout.setValue(settings.value("timeout", 10, int))
         form.addRow(tr("Hide after:"), self.timeout)
-
-        self.mode = QComboBox()
-        self.mode.addItem(tr("On any mouse movement or key press"), MODE_ACTIVITY)
-        self.mode.addItem(tr("Only on a click on the desktop"), MODE_CLICK)
-        self.mode.setCurrentIndex(self.mode.findData(settings.value("mode", MODE_ACTIVITY)))
-        form.addRow(tr("Show again:"), self.mode)
-
-        chosen = settings.value("buttons", "left,right,middle").split(",")
-        self.buttons = {}
-        row = QHBoxLayout()
-        for key, label in (("left", tr("Left")), ("middle", tr("Middle")),
-                           ("right", tr("Right"))):
-            box = QCheckBox(label)
-            box.setChecked(key in chosen)
-            box.toggled.connect(self.update_enabled)
-            self.buttons[key] = box
-            row.addWidget(box)
-        form.addRow(tr("With mouse button:"), row)
-
-        self.clicks = QComboBox()
-        self.clicks.addItem(tr("One click"), CLICKS_SINGLE)
-        self.clicks.addItem(tr("A double-click"), CLICKS_DOUBLE)
-        self.clicks.setCurrentIndex(max(0, self.clicks.findData(
-            settings.value("clicks", CLICKS_SINGLE))))
-        form.addRow(tr("Number of clicks:"), self.clicks)
-
-        self.rehide = QComboBox()
-        self.rehide.addItem(tr("After that time without movement (moving postpones)"),
-                            REHIDE_IDLE)
-        self.rehide.addItem(tr("After that time, even while you move"), REHIDE_FIXED)
-        self.rehide.setCurrentIndex(self.rehide.findData(settings.value("rehide", REHIDE_IDLE)))
-        self.rehide.setToolTip(tr("With a fixed time the icons can disappear just as you are "
-                                  "about to click something; 10 s or more works well."))
-        form.addRow(tr("Hide again:"), self.rehide)
-
-        self.corner = QComboBox()
-        for key, label, _js in CORNERS:
-            self.corner.addItem(tr(label), key)
-        self.corner.setCurrentIndex(self.corner.findData(settings.value("corner", "none")))
-        self.corner.setToolTip(tr("Moving the mouse into this screen corner brings the icons "
-                                  "back.\n"
-                                  "Note: KDE may already have an action on that corner "
-                                  "(System Settings → Screen Edges)."))
-        form.addRow(tr("Screen corner shows:"), self.corner)
 
         self.only_desktop = QCheckBox(tr("Activity in other windows doesn't count"))
         self.only_desktop.setChecked(settings.value("only_desktop", True, bool))
@@ -315,23 +273,62 @@ class SettingsDialog(QDialog):
         form.addRow(row)
         self.only_desktop.toggled.connect(self.update_enabled)
 
-        self.use_helper = QCheckBox(tr("Hide with a helper widget on the desktop (lighter)"))
-        self.use_helper.setChecked(settings.value("use_helper", True, bool))
-        self.use_helper.setToolTip(tr(
-            "On: an invisible widget on the desktop makes the icons go and come. That is at "
-            "once, costs no memory and writes nothing to disk; fading, hiding widgets and the "
-            "double-click need it.\n"
-            "Off: Tidy swaps the desktop's folder for an empty one and lays an invisible "
-            "window over the desktop for your click. That needs nothing inside Plasma.\n"
-            "Tidy also falls back on the second way by itself when the helper does not work."))
-        self.use_helper.toggled.connect(self.update_enabled)
-        form.addRow(self.use_helper)
-
         self.double_hides = QCheckBox(tr("A double-click on an empty spot of the desktop hides "
                                          "the icons"))
         self.double_hides.setChecked(settings.value("double_hides", False, bool))
         self.double_hides.setToolTip(tr("Needs the helper widget on the desktop."))
         form.addRow(self.double_hides)
+
+        box = QGroupBox(tr("How they come back"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
+        self.back_form = form
+
+        # One choice for how they come back; kept as two settings (mode and clicks).
+        self.back = QComboBox()
+        self.back.addItem(tr("On any mouse movement or key press"), f"{MODE_ACTIVITY}:{CLICKS_SINGLE}")
+        self.back.addItem(tr("On a click on the desktop"), f"{MODE_CLICK}:{CLICKS_SINGLE}")
+        self.back.addItem(tr("On a double-click on the desktop"), f"{MODE_CLICK}:{CLICKS_DOUBLE}")
+        mode = settings.value("mode", MODE_ACTIVITY)
+        clicks = settings.value("clicks", CLICKS_SINGLE) if mode == MODE_CLICK else CLICKS_SINGLE
+        self.back.setCurrentIndex(max(0, self.back.findData(f"{mode}:{clicks}")))
+        form.addRow(tr("The icons come back:"), self.back)
+
+        chosen = settings.value("buttons", "left,right,middle").split(",")
+        self.buttons = {}
+        row = QHBoxLayout()
+        for key, label in (("left", tr("Left")), ("middle", tr("Middle")),
+                           ("right", tr("Right"))):
+            box = QCheckBox(label)
+            box.setChecked(key in chosen)
+            box.toggled.connect(self.update_enabled)
+            self.buttons[key] = box
+            row.addWidget(box)
+        self.buttons_row = row
+        form.addRow(tr("With mouse button:"), row)
+
+        self.rehide = QComboBox()
+        self.rehide.addItem(tr("After that time without movement (moving postpones)"),
+                            REHIDE_IDLE)
+        self.rehide.addItem(tr("After that time, even while you move"), REHIDE_FIXED)
+        self.rehide.setCurrentIndex(self.rehide.findData(settings.value("rehide", REHIDE_IDLE)))
+        self.rehide.setToolTip(tr("With a fixed time the icons can disappear just as you are "
+                                  "about to click something; 10 s or more works well."))
+        form.addRow(tr("After that they hide:"), self.rehide)
+
+        self.corner = QComboBox()
+        for key, label, _js in CORNERS:
+            self.corner.addItem(tr(label), key)
+        self.corner.setCurrentIndex(self.corner.findData(settings.value("corner", "none")))
+        self.corner.setToolTip(tr("Moving the mouse into this screen corner brings the icons "
+                                  "back.\n"
+                                  "Note: KDE may already have an action on that corner "
+                                  "(System Settings → Screen Edges)."))
+        form.addRow(tr("Screen corner shows:"), self.corner)
+
+        box = QGroupBox(tr("What hides along"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
 
         self.panel = QCheckBox(tr("Also hide the panel (taskbar)"))
         self.panel.setChecked(settings.value("hide_panel", False, bool))
@@ -376,18 +373,6 @@ class SettingsDialog(QDialog):
             form.addRow(inner)
             self.hide_widgets.toggled.connect(self.update_enabled)
 
-        self.fade_icons = QCheckBox(tr("Fade the icons in and out"))
-        self.fade_icons.setChecked(settings.value("fade_icons", False, bool))
-        self.fade_icons.setToolTip(tr("Needs the helper widget on the desktop."))
-        self.fade_icons.toggled.connect(self.update_enabled)
-        self.fade_duration = QSpinBox(suffix=" ms", minimum=50, maximum=3000, singleStep=50)
-        self.fade_duration.setValue(settings.value("fade_duration", 300, int))
-        row = QHBoxLayout()
-        row.addWidget(self.fade_icons)
-        row.addWidget(self.fade_duration)
-        row.addStretch()
-        form.addRow(row)
-
         # Per screen, only when there is a choice to make.
         self.skipped = [name for name in settings.value("skip_screens", "").split(",") if name]
         self.screens = {}
@@ -401,6 +386,34 @@ class SettingsDialog(QDialog):
                 self.screens[screen.name()] = box
                 row.addWidget(box)
             form.addRow(tr("Hide the icons on:"), row)
+
+        box = QGroupBox(tr("How it is done"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
+
+        self.use_helper = QCheckBox(tr("Hide with a helper widget on the desktop (lighter)"))
+        self.use_helper.setChecked(settings.value("use_helper", True, bool))
+        self.use_helper.setToolTip(tr(
+            "On: an invisible widget on the desktop makes the icons go and come. That is at "
+            "once, costs no memory and writes nothing to disk; fading, hiding widgets and the "
+            "double-click need it.\n"
+            "Off: Tidy swaps the desktop's folder for an empty one and lays an invisible "
+            "window over the desktop for your click. That needs nothing inside Plasma.\n"
+            "Tidy also falls back on the second way by itself when the helper does not work."))
+        self.use_helper.toggled.connect(self.update_enabled)
+        form.addRow(self.use_helper)
+
+        self.fade_icons = QCheckBox(tr("Fade the icons in and out"))
+        self.fade_icons.setChecked(settings.value("fade_icons", False, bool))
+        self.fade_icons.setToolTip(tr("Needs the helper widget on the desktop."))
+        self.fade_icons.toggled.connect(self.update_enabled)
+        self.fade_duration = QSpinBox(suffix=" ms", minimum=50, maximum=3000, singleStep=50)
+        self.fade_duration.setValue(settings.value("fade_duration", 300, int))
+        row = QHBoxLayout()
+        row.addWidget(self.fade_icons)
+        row.addWidget(self.fade_duration)
+        row.addStretch()
+        form.addRow(row)
 
         layout.addStretch()
 
@@ -522,7 +535,7 @@ class SettingsDialog(QDialog):
         footer.addWidget(self.button_box)
         outer.addLayout(footer)
 
-        self.mode.currentIndexChanged.connect(self.update_enabled)
+        self.back.currentIndexChanged.connect(self.update_enabled)
         self.update_enabled()
 
         # The countdown on the Desktop tab: only kept up while that tab is in view. (It asks
@@ -585,11 +598,10 @@ class SettingsDialog(QDialog):
             self.tabs.setCurrentWidget(self.about_tab)
 
     def update_enabled(self):
-        click = self.mode.currentData() == MODE_CLICK
-        for box in self.buttons.values():
-            box.setEnabled(click)
-        self.clicks.setEnabled(click)
-        self.rehide.setEnabled(click)
+        # What only goes with a click is out of sight for the other choice.
+        click = self.chosen_mode() == MODE_CLICK
+        self.back_form.setRowVisible(self.buttons_row, click)
+        self.back_form.setRowVisible(self.rehide, click)
         # In click mode at least one button must be chosen.
         valid = not click or any(b.isChecked() for b in self.buttons.values())
         helper = self.use_helper.isChecked()
@@ -637,6 +649,12 @@ class SettingsDialog(QDialog):
             self.status_label.setText(tr("Visible — hiding in:"))
             self.bar.setValue(int(1000 * remaining / total))
             self.bar.setFormat(f"{remaining:.0f} s")
+
+    def chosen_mode(self):
+        return self.back.currentData().split(":")[0]
+
+    def chosen_clicks(self):
+        return self.back.currentData().split(":")[1]
 
     def chosen_buttons(self):
         return ",".join(k for k, b in self.buttons.items() if b.isChecked())

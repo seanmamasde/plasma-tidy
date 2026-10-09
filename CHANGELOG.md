@@ -1,5 +1,13 @@
 # Changes
 
+## 0.4.0 — not released yet
+
+- The Desktop tab of the settings is in four groups: when the icons hide, how they come back,
+  what hides along, and how it is done.
+- One choice instead of two for how the icons come back: on any movement or key press, on a
+  click on the desktop, or on a double-click on the desktop. What only goes with a click
+  shows only then. Your own settings stay as they are.
+
 ## 0.3.5 — 2026-10-07
 
 - *Add a folder…* in a drawer's settings puts a folder in the panel, in that drawer, for quick

@@ -958,7 +958,7 @@ class Tidy(QObject):
         dlg.focus_tab.save()
         old_kwin = self.kwin_setup()
         self.settings.setValue("timeout", dlg.timeout.value())
-        self.settings.setValue("mode", dlg.mode.currentData())
+        self.settings.setValue("mode", dlg.chosen_mode())
         self.settings.setValue("buttons", dlg.chosen_buttons())
         self.settings.setValue("rehide", dlg.rehide.currentData())
         self.settings.setValue("corner", dlg.corner.currentData())
@@ -969,7 +969,7 @@ class Tidy(QObject):
         self.settings.setValue("skip_screens", dlg.skipped_screens())
         self.settings.setValue("fade_icons", dlg.fade_icons.isChecked())
         self.settings.setValue("fade_duration", dlg.fade_duration.value())
-        self.settings.setValue("clicks", dlg.clicks.currentData())
+        self.settings.setValue("clicks", dlg.chosen_clicks())
         self.settings.setValue("double_hides", dlg.double_hides.isChecked())
         self.settings.setValue("hide_widgets", dlg.hide_widgets.isChecked())
         self.settings.setValue("widgets_keep", ",".join(

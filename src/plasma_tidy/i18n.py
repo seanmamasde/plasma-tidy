@@ -313,8 +313,13 @@ TRANSLATIONS = {
         "Hide now": "Nu verbergen",
         "Hide after:": "Verbergen na:",
         "On any mouse movement or key press": "Bij elke muisbeweging of toets",
-        "Only on a click on the desktop": "Alleen bij een klik op het bureaublad",
-        "Show again:": "Weer tonen:",
+        "The icons come back:": "De pictogrammen komen terug:",
+        "On a click on the desktop": "Bij een klik op het bureaublad",
+        "On a double-click on the desktop": "Bij een dubbelklik op het bureaublad",
+        "When the icons hide": "Wanneer de pictogrammen verdwijnen",
+        "How they come back": "Hoe ze terugkomen",
+        "What hides along": "Wat mee verdwijnt",
+        "How it is done": "Hoe het gebeurt",
         "Left": "Links",
         "Middle": "Midden",
         "Right": "Rechts",
@@ -326,7 +331,7 @@ TRANSLATIONS = {
         "something; 10 s or more works well.":
             "Bij een vaste tijd kunnen de pictogrammen verdwijnen terwijl je "
             "net iets wilt aanklikken; 10 s of meer is prettig.",
-        "Hide again:": "Weer verbergen:",
+        "After that they hide:": "Daarna verdwijnen ze:",
         "Moving the mouse into this screen corner brings the icons back.\n"
         "Note: KDE may already have an action on that corner "
         "(System Settings → Screen Edges).":
@@ -539,12 +544,6 @@ TRANSLATIONS = {
             "Meer instellingen…",
         "Rules":
             "Regels",
-        "One click":
-            "Eén klik",
-        "A double-click":
-            "Een dubbelklik",
-        "Number of clicks:":
-            "Aantal klikken:",
         "A double-click on an empty spot of the desktop hides the icons":
             "Dubbelklikken op een lege plek van het bureaublad verbergt de pictogrammen",
         "Also hide the widgets on the desktop":
