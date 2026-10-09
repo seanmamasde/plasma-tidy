@@ -86,6 +86,7 @@ TRANSLATIONS = {
             "en haalt ze terug als je op het pijltje klikt of het aanwijst.",
         "Drawer:": "La:",
         "Drawers": "Laden",
+        "Search the settings…": "Zoek in de instellingen…",
         "A panel that hides": "Een paneel dat zich verbergt",
         "Drawer {n}": "La {n}",
         "Name:": "Naam:",

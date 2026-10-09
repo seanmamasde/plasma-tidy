@@ -10,6 +10,9 @@
 - The *Panel* tab is called *Drawers* now, because drawers is what it holds. A new *Panel*
   tab has what is about the panel as a whole: *Show the panel* (it was on *Desktop*) and
   *Balloons and previews* (it was below the drawers).
+- A search field at the top of the settings window. Type a word, pick a setting from the
+  list, and the window opens the right tab and marks the setting. It finds the names of
+  settings, the choices in their lists, and the names of tabs and groups.
 
 ## 0.3.5 — 2026-10-07
 

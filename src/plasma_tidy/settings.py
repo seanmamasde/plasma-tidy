@@ -23,6 +23,7 @@ from .peek import bare_key
 from .plasma import widget_name
 from .resources import WISPWARE_LOGO
 from .rules_ui import RulesTab
+from .search import SearchBox
 from .tray import TrayTab
 
 
@@ -203,6 +204,12 @@ class SettingsDialog(QDialog):
         # All tabs in view at once: the window is made wide enough rather than the tab bar
         # getting arrows to scroll with.
         tabs.setUsesScrollButtons(False)
+        find = QHBoxLayout()
+        find.addStretch()
+        self.search = SearchBox(self)
+        self.search.setMinimumWidth(300)
+        find.addWidget(self.search)
+        outer.addLayout(find)
         outer.addWidget(tabs)
         desktop_tab = QWidget()
         layout = QVBoxLayout(desktop_tab)

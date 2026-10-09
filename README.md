@@ -116,6 +116,9 @@ to add a drawer for the programs in your panel and to tidy the system tray; both
 unless you tick them. Everything else is in the settings, and *Welcome window…* on the
 *General* tab shows the window again.
 
+Looking for a setting? Type a word in the search field at the top of the settings window
+and pick it from the list: the window opens the right tab and marks the setting.
+
 In the settings window, *Apply* puts your changes to work and keeps the window open, so you
 can try them out; *OK* does the same and closes it. *Apply* becomes available as soon as you
 change something.
