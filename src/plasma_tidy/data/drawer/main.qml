@@ -791,6 +791,7 @@ PlasmoidItem {
         taskHiders = kept;
         countOwn();
         listTasks.restart();
+        Qt.callLater(root.linkSettle);
     }
     // The programs you chose to keep in the panel, by their application id.
     readonly property var keepIds: Array.from(cfg.taskKeep || []).map(String)
@@ -802,6 +803,7 @@ PlasmoidItem {
         taskHiders.forEach(h => { if (h.hider && h.hider.takesPart && !h.hider.launcherOnly) n++; });
         ownWindows = n;
         listPopup.restart();
+        Qt.callLater(root.linkSettle);
     }
 
     // --- a look at itself ----------------------------------------------------------------
@@ -1612,7 +1614,7 @@ PlasmoidItem {
             try { e.item.oldX = e.item.x; e.item.oldY = e.item.y; } catch (err) {}
         });
     }
-    function finishSlide() {
+    function finishSlide(turning) {
         if (!slideActive) return;
         slideAnim.stop();
         slideSet.forEach(h => {
@@ -1627,9 +1629,29 @@ PlasmoidItem {
         slideSet = [];
         settleTasks();
         slideBusy = false;
+        if (!turning) linkRest();
     }
     function runSlide() {
-        if (slideActive) finishSlide();
+        if (slideActive) {
+            // Turned round halfway, and it is the same icons that now go the other way: they
+            // go back from where they are. (It used to jump to the end first and start anew.)
+            var others = taskHiders.some(e => {
+                var h = e.hider;
+                return h.task && slideSet.indexOf(h) < 0
+                    && ((h.hideMe && h.present) || (!h.hideMe && (!h.present || h.factor < 1)));
+            });
+            if (slides && !leaving && !others && slideSet.length
+                    && slideSet.every(h => h.task && h.hideMe === slideOpening)) {
+                slideOpening = !slideOpening;
+                linkState = slideOpening ? "opening" : "closing";
+                slideAnim.stop();
+                slideAnim.from = slideP;
+                slideAnim.to = slideOpening ? 1 : 0;
+                slideAnim.restart();
+                return;
+            }
+            finishSlide(true);   // anything else: finish it, what follows says where it is
+        }
         var show = [], hide = [];
         taskHiders.forEach(e => {
             var h = e.hider;
@@ -1637,7 +1659,7 @@ PlasmoidItem {
             if (h.hideMe && h.present) hide.push(h);
             else if (!h.hideMe && (!h.present || h.factor < 1)) show.push(h);
         });
-        if (!show.length && !hide.length) return;
+        if (!show.length && !hide.length) { linkSettle(); return; }
         slideBusy = true;
         if ((show.length && hide.length) || !slides || leaving) {
             // Some come while others go (a setting changed): no show, just do it.
@@ -1646,6 +1668,7 @@ PlasmoidItem {
             polishTasks();
             settleTasks();
             slideBusy = false;
+            linkRest();
             return;
         }
         slideOpening = show.length > 0;
@@ -1679,9 +1702,164 @@ PlasmoidItem {
         });
         slideP = slideOpening ? 0 : 1;
         slideActive = true;
+        linkRun.stop();
+        linkMeasure();
+        linkDuration = cfg.animationDuration;
+        linkState = slideOpening ? "opening" : "closing";
+        linkProgress = slideP;
         slideAnim.from = slideP;
         slideAnim.to = slideOpening ? 1 : 0;
         slideAnim.restart();
+    }
+
+    // --- what the drawer makes known to other programs ----------------------------------------
+    //
+    // One object with fixed names and fixed meanings, for another widget in the same panel to
+    // read (Modish's centre mod keeps the row of icons in the middle and follows "progress").
+    // The agreement is docs/tidy-link.md in Modish's repository; nothing but these names may
+    // be relied on from outside, and nothing here changes what the drawer itself does.
+    readonly property QtObject wispwareLink: QtObject {
+        readonly property int version: 1
+        readonly property string kind: "tidy.drawer"
+        // Do this drawer's icons stand in the task manager's row? Not as a pop-up, and not
+        // without program icons: then the rest says nothing.
+        readonly property bool inRow: !root.popupMode && root.linkTasks.length > 0
+        readonly property string state: root.linkState        // closed, opening, open, closing
+        readonly property real progress: root.linkProgress    // 0 closed .. 1 open
+        readonly property int duration: root.linkDuration     // of this move, or of the next
+        readonly property var tasks: root.linkTasks           // the task manager's own icon items
+        readonly property real room: root.linkRoom            // what they take in the open row
+        readonly property real before: root.linkBefore        // of that: before the first other icon
+    }
+    property string linkState: "open"
+    property real linkProgress: 1
+    property int linkDuration: 0
+    property var linkTasks: []
+    property real linkRoom: 0
+    property real linkBefore: 0
+    // Sliding and growing tell how far they really are. Fading and one by one have no single
+    // number: every icon first gets its room and then fades in, one after the other. For those
+    // a clock runs over the whole of it, from the first icon's start to the last one's end,
+    // and each icon counts from its own start, eased, for the time it takes.
+    property real linkClock: 0
+    property real linkFrom: 1
+    property real linkTo: 1
+    property var linkStarts: []       // when each icon starts, in ms from the beginning
+    property real linkSpan: 0         // how long one icon takes
+    property bool linkReal: false     // growing: progress is read from the icons themselves
+    property bool linkPending: false
+    NumberAnimation {
+        id: linkRun
+        target: root; property: "linkClock"; from: 0
+        onFinished: root.linkRest()
+    }
+    onLinkClockChanged: {
+        if (!linkRun.running) return;
+        var p = linkReal ? linkSeen() : linkAt(linkClock);
+        // one way only during one opening or closing
+        linkProgress = linkTo > linkFrom ? Math.max(linkProgress, Math.min(1, p))
+                                         : Math.min(linkProgress, Math.max(0, p));
+    }
+    onSlidePChanged: if (slideActive) linkProgress = slideP
+    onWantClosedChanged: Qt.callLater(root.linkSettle)
+    function linkParts() { return taskHiders.filter(e => e.item && e.hider.task && e.hider.takesPart); }
+    function linkAt(t) {
+        var n = linkStarts.length, sum = 0;
+        if (!n || linkSpan <= 0) return linkTo;
+        for (var i = 0; i < n; i++) {
+            var u = Math.max(0, Math.min(1, (t - linkStarts[i]) / linkSpan));
+            sum += u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u);
+        }
+        return linkFrom + (linkTo - linkFrom) * sum / n;
+    }
+    function linkSeen() {
+        var room = 0, full = 0;
+        linkParts().forEach(e => { room += e.hider.room; full += e.hider.naturalSize; });
+        return full > 0 ? room / full : linkTo;
+    }
+    // How long an opening or a closing takes, the pauses and the row closing up included.
+    function linkTime(closing, starts) {
+        var time = cfg.animationDuration;
+        if (slides || shrinks) return time;
+        var last = 0;
+        if (starts) starts.forEach(d => { last = Math.max(last, d); });
+        else if (animation === "cascade") {
+            var others = Math.max(0, linkTasks.length - 1);
+            last = others ? Math.round(others * Math.min(time * 0.4, 1200 / others)) : 0;
+        }
+        return last + linkOne(closing);
+    }
+    // One icon, fading or one by one. Opening: its room opens and the others move aside (the
+    // task manager's own move), then it fades in. Closing: it fades out, then the row closes up.
+    function linkOne(closing) {
+        var time = cfg.animationDuration;
+        return closing ? time + moveTime : Math.max(moveTime, roomTime + time);
+    }
+    function linkMeasure() {
+        var parts = linkParts();
+        var along = t => (t.index !== undefined && t.index >= 0) ? t.index
+            : (t.parent ? Array.prototype.indexOf.call(t.parent.children, t) : 0);
+        var gap = 0;
+        try {
+            var list = parts.length ? parts[0].item.parent : null;
+            gap = (vertical ? list.rowSpacing : list.columnSpacing) || 0;
+        } catch (e) {}
+        // the first icon in the row that is not the drawer's
+        var first = Infinity;
+        taskHiders.forEach(e => {
+            if (e.item && e.hider.task && !e.hider.takesPart) first = Math.min(first, along(e.item));
+        });
+        var room = 0, before = 0;
+        parts.forEach(e => {
+            var one = e.hider.naturalSize + gap;
+            room += one;
+            if (along(e.item) < first) before += one;
+        });
+        var items = parts.map(e => e.item);
+        if (items.length !== linkTasks.length || items.some((t, i) => t !== linkTasks[i])) linkTasks = items;
+        linkRoom = room;
+        linkBefore = before;
+        if (!linkRun.running && !slideActive) linkDuration = linkTime(linkState === "open");
+    }
+    // At rest: open or closed, and nothing in between.
+    function linkRest() {
+        linkRun.stop();
+        linkReal = false;
+        linkState = wantClosed ? "closed" : "open";
+        linkProgress = wantClosed ? 0 : 1;
+        linkMeasure();
+    }
+    // Something changed without an animation (no icons, the panel being edited, a start).
+    function linkSettle() {
+        if (linkRun.running || slideActive || slideKick.running || linkPending) linkMeasure();
+        else linkRest();
+    }
+    // Fading, one by one and growing start here, in the same turn in which the icons were told.
+    function linkTouch() {
+        if (linkPending) return;
+        linkPending = true;
+        Qt.callLater(root.linkBegin);
+    }
+    function linkBegin() {
+        linkPending = false;
+        var closing = wantClosed, to = closing ? 0 : 1, parts = linkParts();
+        if (linkState === (closing ? "closed" : "open") && linkProgress === to) { linkMeasure(); return; }
+        var starts = parts.map(e => shrinks ? 0 : e.hider.delay);
+        var total = linkTime(closing, starts);
+        if (!parts.length || total <= 0 || leaving) { linkRest(); return; }
+        linkRun.stop();
+        linkMeasure();
+        linkFrom = linkProgress;
+        linkTo = to;
+        linkStarts = starts;
+        linkSpan = shrinks ? cfg.animationDuration : linkOne(closing);
+        linkReal = shrinks;
+        linkDuration = total;
+        linkState = closing ? "closing" : "opening";
+        linkClock = 0;
+        linkRun.to = total;
+        linkRun.duration = total;
+        linkRun.start();
     }
 
     Component {
@@ -1701,6 +1879,7 @@ PlasmoidItem {
             onLauncherOnlyChanged: root.countOwn()
             readonly property bool hideMe: root.wantClosed && takesPart
             property real size: 0     // natural size, remembered while visible
+            onSizeChanged: Qt.callLater(root.linkMeasure)
             readonly property real naturalSize: size > 0 ? size : root.someTaskSize
             // Two things make an icon come and go: its place in the row ("present") and how
             // see-through it is ("factor"). Sliding ties them together: the place gets
@@ -1736,6 +1915,7 @@ PlasmoidItem {
                 }
                 delay = root.cascadeDelay(th);
                 settle.restart();
+                root.linkTouch();
                 if (root.shrinks) factor = hideMe ? 0 : 1;   // the Behavior below animates it
                 else if (hideMe) vanish.start();
                 else appear.start();
