@@ -2666,6 +2666,28 @@ PlasmoidItem {
         else if (cfg.closeAfterUse && inDrawerItem(pos))
             useTimer.restart();
     }
+    // A click on the part of a grown icon that sticks out of the panel never comes by the
+    // panel: the program that lets it grow passes it on to the icon and tells of it with
+    // "clicked" on its link. It is a click on that icon like any other: the panel stays a
+    // while after a program is started, and the drawer closes after use if that is set.
+    // (The left button only, as with a click in the panel itself.)
+    function iconClicked(item, button) {
+        if (cfg.paused || cfg.closed || button !== "left") return;
+        var c = item, hops = 0;
+        while (c && !c.isAppletContainer && hops < 12) { c = c.parent; hops++; }
+        if (!c || c.isAppletContainer !== true || !drawerItems.some(s => s.item === c)) return;
+        keepPanel(cfg.keepPanel);
+        if (cfg.closeAfterUse) useTimer.restart();
+    }
+    Instantiator {
+        model: root.growers
+        delegate: Connections {
+            required property var modelData
+            target: modelData
+            ignoreUnknownSignals: true
+            function onClicked(item, button) { root.iconClicked(item, button); }
+        }
+    }
     // A click on something in the drawer: close once it has done its work. A pop-up that the
     // click opened (system tray) is waited for.
     function inDrawerItem(pos) {
