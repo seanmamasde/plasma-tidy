@@ -1666,8 +1666,10 @@ PlasmoidItem {
     // ones it passes jump a place. Here the whole of it is one movement: the icons it passes
     // glide, and the one that travels glides along on top of them or fades over from the old
     // spot to the new one, as is set. Each icon is drawn "moveBy" away from its new place at
-    // the start and comes home as moveP goes from 1 to 0.
-    property real moveP: 0
+    // the start and comes home as moveP goes from 1 to 0. It sets off at once and lands softly:
+    // moveT is the time that is left, from 1 to 0, and moveP how much of the way.
+    property real moveT: 0
+    readonly property real moveP: moveT * moveT * moveT
     property bool moveActive: false
     property bool moveBusy: false       // from before the row changes: no animation of the task manager's own
     property var moveSet: []            // the hiders of the icons that are on their way
@@ -1698,8 +1700,8 @@ PlasmoidItem {
     property bool moveByOther: false    // this move is drawn by the other program
     NumberAnimation {
         id: moveAnim
-        target: root; property: "moveP"; from: 1; to: 0
-        duration: root.cfg.animationDuration; easing.type: Easing.InOutCubic
+        target: root; property: "moveT"; from: 1; to: 0
+        duration: root.cfg.animationDuration
         onFinished: root.finishMove()
     }
     function finishMove() {
@@ -1746,7 +1748,7 @@ PlasmoidItem {
         });
         moveSet = moved.map(m => m.hider);
         moveNote("run", moved.map(m => [m.hider.appId, Math.round(m.hider.homeAt), Math.round(m.by), m.hider.travels]));
-        moveP = 1;
+        moveT = 1;
         moveActive = true;
         moveAnim.restart();
     }
@@ -2068,7 +2070,8 @@ PlasmoidItem {
             // which the move begins.
             function movedAt() {
                 if (!root.moveActive || moveBy === 0) return 0;
-                return fadesOver ? (root.moveP > 0.5 ? moveBy : 0) : moveBy * root.moveP;
+                // fading over goes by the clock: half the time to go, half the time to come
+                return fadesOver ? (root.moveT > 0.5 ? moveBy : 0) : moveBy * root.moveP;
             }
             readonly property real movedNow: (root.moveActive, root.moveP, moveBy, fadesOver, movedAt())
             // Which program this is, kept for when the icon itself has gone: the task manager
@@ -2076,7 +2079,7 @@ PlasmoidItem {
             property string appId: ""
             readonly property string appIdNow: task && task.model ? String(task.model.AppId) : ""
             onAppIdNowChanged: if (appIdNow !== "") appId = appIdNow
-            readonly property real moveSeen: (root.moveActive && fadesOver) ? Math.abs(2 * root.moveP - 1) : 1
+            readonly property real moveSeen: (root.moveActive && fadesOver) ? Math.abs(2 * root.moveT - 1) : 1
             readonly property real seen: Math.min(moveSeen,
                 (root.slideActive && sliding) ? Math.min(1, root.slideP * 1.5) : factor)
 
@@ -2471,7 +2474,9 @@ PlasmoidItem {
                 }
                 if (started) root.runMove(before);
             }
-            property Timer arrange: Timer { interval: 60; onTriggered: tm.arrangeOpen() }
+            // A moment, so that what comes in one go is looked at once. Short: this is the wait
+            // between a click on a program and its icon setting off.
+            property Timer arrange: Timer { interval: 16; onTriggered: tm.arrangeOpen() }
             property Connections pins: Connections {
                 target: tm.tasksModel
                 function onLauncherListChanged() { tm.listChanged(); }
@@ -2843,6 +2848,7 @@ PlasmoidItem {
         return false;
     }
     function panelTapped(pos) {
+        moveNote("tap", Math.round(pos));
         if (cfg.paused) return;
         if (!cfg.closed && inDrawerItem(pos)) keepPanel(cfg.keepPanel);
         if (cfg.closed) {
