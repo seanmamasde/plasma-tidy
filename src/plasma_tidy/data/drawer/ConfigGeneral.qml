@@ -29,6 +29,8 @@ KCM.SimpleKCM {
     property bool cfg_closeOnPanelClick
     property bool cfg_openOnPanelClick
     property bool cfg_iconLarge
+    property string cfg_stackBend
+    property bool cfg_stackNames
     property string cfg_panelClick
     property bool cfg_closeAfterUse
     property int cfg_useDelay
@@ -293,9 +295,22 @@ KCM.SimpleKCM {
             enabled: page.cfg_display === "popup"
             choices: [["row", "A row of icons"], ["column", "A column of icons"],
                       ["grid", "A grid with names"], ["list", "A list with names"],
-                      ["stack", "A fan out of the arrow, with names"]]
+                      ["stack", "A fan out of the arrow"]]
             value: page.cfg_popupStyle
             onChosen: value => page.cfg_popupStyle = value
+        }
+        Choice {
+            Kirigami.FormData.label: page.t("The fan bends:")
+            enabled: page.cfg_display === "popup" && page.cfg_popupStyle === "stack"
+            choices: [["auto", "To where there is room"], ["left", "To the left"], ["right", "To the right"]]
+            value: page.cfg_stackBend
+            onChosen: value => page.cfg_stackBend = value
+        }
+        QQC2.CheckBox {
+            enabled: page.cfg_display === "popup" && page.cfg_popupStyle === "stack"
+            text: page.t("The fan shows the names")
+            checked: page.cfg_stackNames
+            onToggled: page.cfg_stackNames = checked
         }
         Choice {
             Kirigami.FormData.label: page.t("Place of the pop-up:")

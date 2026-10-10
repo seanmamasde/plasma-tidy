@@ -37,6 +37,8 @@
     <entry name="openOnPanelClick" type="Bool"><default>false</default></entry>
     <entry name="panelClick" type="String"><default>left</default></entry>
     <entry name="iconLarge" type="Bool"><default>false</default></entry>
+    <entry name="stackBend" type="String"><default>auto</default></entry>
+    <entry name="stackNames" type="Bool"><default>true</default></entry>
     <entry name="closeAfterUse" type="Bool"><default>false</default></entry>
     <entry name="useDelay" type="Int"><default>400</default></entry>
     <entry name="closeOnPanelHide" type="Bool"><default>true</default></entry>

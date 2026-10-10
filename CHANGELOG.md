@@ -40,6 +40,8 @@
 - A fifth look for a drawer's pop-up, a fan: the programs come out of the arrow one above the
   other, bending away a little, each with its name beside it, and go back into it. Above or
   under a panel, and sideways beside a panel at the side.
+  *The fan bends* sets it to the left or to the right, and *The fan shows the names* can take
+  the names away.
 - A drawer's icon can be as large as the icons of the panel (*As large as the icons of the
   panel*), so that a drawer can stand in a dock as an icon among the others.
 - Every drawer can have its own click on an empty spot of the panel: the left button, the

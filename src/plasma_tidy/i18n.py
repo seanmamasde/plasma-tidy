@@ -726,7 +726,16 @@ TRANSLATIONS = {
             "op wat er ook achter staat.",
         "A grid with names": "Een raster met namen",
         "A list with names": "Een lijst met namen",
-        "A fan out of the arrow, with names": "Een waaier uit het pijltje, met namen",
+        "A fan out of the arrow": "Een waaier uit het pijltje",
+        "The fan bends:": "De waaier buigt:",
+        "To where there is room": "Naar waar ruimte is",
+        "To the left": "Naar links",
+        "To the right": "Naar rechts",
+        "The fan shows the names": "De waaier toont de namen",
+        "Which way the fan bends as it goes up from the icon. Left to itself it goes to the right, or to the left where it has no room. The names stand on the other side. Beside a panel at the side of the screen it always goes away from the panel.":
+            "Welke kant de waaier op buigt als hij uit het pictogram omhoog gaat. Uit zichzelf gaat hij naar rechts, of naar links waar hij geen ruimte heeft. De namen staan aan de andere kant. Naast een paneel aan de zijkant van het scherm gaat hij altijd van het paneel af.",
+        "Off: only the icons, without their names beside them.":
+            "Uit: alleen de pictogrammen, zonder hun naam ernaast.",
         "As large as the icons of the panel": "Zo groot als de pictogrammen van het paneel",
         "The arrow is small, a handle. With this it is as large as the icons of the programs and takes a square of the panel, as an icon in a dock does: for a drawer with an icon of its own that shows its programs in a pop-up or a fan.":
             "Het pijltje is klein, een handvat. Hiermee is het zo groot als de pictogrammen van de programma's en neemt het een vierkant van het paneel in, zoals een pictogram in een dock: voor een la met een eigen pictogram die zijn programma's in een pop-up of een waaier toont.",

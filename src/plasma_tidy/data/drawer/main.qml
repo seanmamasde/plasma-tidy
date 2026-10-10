@@ -1168,12 +1168,20 @@ PlasmoidItem {
             var middle = (on.from + on.to) / 2;
             if (shelf.fan) {
                 // Which way a fan bends. Beside a side panel: away from it. Above or under a
-                // panel: to the right, with the names on the left, unless the names have no
-                // room there and do have it on the right.
+                // panel: as is set, to the left or to the right. Left to itself it goes to the
+                // right, with the names on the left, unless the names have no room there and
+                // do have it on the right; without names, unless it would leave the screen.
                 if (vertical) shelf.fanLean = Plasmoid.location === PlasmaCore.Types.RightEdge ? -1 : 1;
+                else if (cfg.stackBend === "left") shelf.fanLean = -1;
+                else if (cfg.stackBend === "right") shelf.fanLean = 1;
                 else {
-                    var ends = screenEnds(away), need = shelf.fanLabel + shelf.fanLabelGap + shelf.fanIcon / 2;
-                    shelf.fanLean = (middle - ends.low >= need || ends.high - middle < need) ? 1 : -1;
+                    var ends = screenEnds(away);
+                    if (shelf.fanNames) {
+                        var need = shelf.fanLabel + shelf.fanLabelGap + shelf.fanIcon / 2;
+                        shelf.fanLean = (middle - ends.low >= need || ends.high - middle < need) ? 1 : -1;
+                    } else {
+                        shelf.fanLean = ends.high - middle >= shelf.fanDrift + shelf.fanIcon / 2 ? 1 : -1;
+                    }
                 }
             }
             var start = shelf.fan ? middle - shelf.fanAlong : middle - size / 2;
@@ -1244,6 +1252,10 @@ PlasmoidItem {
     }
     readonly property string popupPlace: cfg.popupPlace
     onPopupPlaceChanged: if (popupWanted) placeAnchor()
+    readonly property string stackBend: cfg.stackBend
+    onStackBendChanged: placeAnchor()
+    readonly property bool stackNames: cfg.stackNames
+    onStackNamesChanged: placeAnchor()
     // The pop-up's size changes with what is in it: keep it in place.
     Connections {
         target: shelf
@@ -1331,8 +1343,10 @@ PlasmoidItem {
             readonly property int fanIcon: Kirigami.Units.iconSizes.large
             readonly property int fanStep: fanIcon + Math.round(Kirigami.Units.smallSpacing * 1.5)
             readonly property real fanCurve: 0.8                  // sideways: this times the place squared
-            readonly property int fanLabel: Kirigami.Units.gridUnit * 14
-            readonly property int fanLabelGap: Kirigami.Units.smallSpacing * 2
+            // With the names beside the icons, or the icons alone.
+            readonly property bool fanNames: root.cfg.stackNames
+            readonly property int fanLabel: fanNames ? Kirigami.Units.gridUnit * 14 : 0
+            readonly property int fanLabelGap: fanNames ? Kirigami.Units.smallSpacing * 2 : 0
             readonly property int fanDockGap: Math.round(Kirigami.Units.gridUnit * 0.7)
             // No more than the screen has room for above the panel.
             readonly property int fanCount: Math.max(0, Math.min(count,
@@ -1709,7 +1723,8 @@ PlasmoidItem {
                     Component.onCompleted: if (shelf.fanOpen) go(true)
                     MouseArea {
                         id: rowArea
-                        readonly property real reach: shelf.fanIcon / 2 + shelf.fanLabelGap + pill.width
+                        readonly property real reach: shelf.fanIcon / 2
+                            + (shelf.fanNames ? shelf.fanLabelGap + pill.width : 0)
                         x: shelf.fanLabelSide > 0 ? -shelf.fanIcon / 2 : -reach
                         y: -shelf.fanIcon / 2
                         width: shelf.fanIcon / 2 + reach
@@ -1734,6 +1749,7 @@ PlasmoidItem {
                     }
                     Rectangle {
                         id: pill
+                        visible: shelf.fanNames
                         readonly property int inside: Kirigami.Units.smallSpacing * 2
                         width: Math.min(shelf.fanLabel, label.implicitWidth + 2 * inside)
                         height: label.implicitHeight + Kirigami.Units.smallSpacing * 2

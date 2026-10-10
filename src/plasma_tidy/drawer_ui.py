@@ -16,9 +16,9 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, 
 from .consts import (ACTIVE_PLACES, ANIMATIONS, APP_NAME, DISPLAYS, DISPLAY_POPUP, DRAWER_SKIP,
                      FOLDER_PLUGIN, ICON_STYLES, MARK_ATTENTION, MARK_COUNT, MARK_NONE,
                      MARK_OPEN, MOVE_STYLES, OPEN_CLICK, OPEN_HOVER, PANEL_CLICKS, PANEL_PLACES,
-                     PLACE_AFTER, PLACE_BEFORE, PLACE_MANUAL, POPUP_PLACES, POPUP_STYLES, SCOPE_DRAWER,
-                     SCOPE_PANEL, TASKS_ALL, TASKS_PINNED, TASK_PLUGINS, TASK_POPUPS,
-                     TRAY_ARROWS)
+                     PLACE_AFTER, PLACE_BEFORE, PLACE_MANUAL, POPUP_PLACES, POPUP_STYLES,
+                     SCOPE_DRAWER, SCOPE_PANEL, STACK_BENDS, TASKS_ALL, TASKS_PINNED, TASK_PLUGINS,
+                     TASK_POPUPS, TRAY_ARROWS)
 from .i18n import tr
 from .plasma import app_icon, panel_widget_name, plasma_balloons
 from .widgets import install_drawer, new_drawer
@@ -395,6 +395,21 @@ class DrawerPage(QWidget):
         self.popup_style.currentIndexChanged.connect(self.update_enabled)
         form.addRow(tr("Pop-up:"), self.popup_style)
 
+        self.stack_bend = QComboBox()
+        for key, label in STACK_BENDS:
+            self.stack_bend.addItem(tr(label), key)
+        self.stack_bend.setCurrentIndex(max(0, self.stack_bend.findData(config["stackBend"])))
+        self.stack_bend.setToolTip(tr(
+            "Which way the fan bends as it goes up from the icon. Left to itself it goes to "
+            "the right, or to the left where it has no room. The names stand on the other "
+            "side. Beside a panel at the side of the screen it always goes away from the "
+            "panel."))
+        form.addRow(tr("The fan bends:"), self.stack_bend)
+        self.stack_names = QCheckBox(tr("The fan shows the names"))
+        self.stack_names.setChecked(config["stackNames"])
+        self.stack_names.setToolTip(tr("Off: only the icons, without their names beside them."))
+        form.addRow(self.stack_names)
+
         self.popup_place = QComboBox()
         for key, label in POPUP_PLACES:
             self.popup_place.addItem(tr(label), key)
@@ -486,6 +501,8 @@ class DrawerPage(QWidget):
         # A fan comes out of the arrow, and has no background of its own.
         fan = self.popup_style.currentData() == "stack"
         self.popup_place.setEnabled(popup and not fan)
+        self.stack_bend.setEnabled(popup and fan)
+        self.stack_names.setEnabled(popup and fan)
         self.popup_background.setEnabled(popup)
         self.popup_gap.setEnabled(popup)
         self.tray_arrow.setEnabled(popup and any(
@@ -537,6 +554,8 @@ class DrawerPage(QWidget):
                 "openOnPanelClick": self.panel_open.isChecked(),
                 "panelClick": self.panel_kind.currentData(),
                 "iconLarge": self.icon_large.isChecked(),
+                "stackBend": self.stack_bend.currentData(),
+                "stackNames": self.stack_names.isChecked(),
                 "closeAfterUse": self.after_use.isChecked(),
                 "useDelay": round(self.use_delay.value() * 1000),
                 "closeOnPanelHide": self.on_panel_hide.isChecked(),
