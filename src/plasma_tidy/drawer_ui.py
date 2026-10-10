@@ -289,9 +289,12 @@ class DrawerPage(QWidget):
         layout.addStretch()
         parts.addTab(page, tr("Opening and closing"))
 
-        # --- the arrow ---
+        # --- how it looks: the arrow, where the contents show, and how they come and go ---
         page = QWidget()
-        form = QFormLayout(page)
+        layout = QVBoxLayout(page)
+        box = QGroupBox(tr("The arrow"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
         self.icon = QComboBox()
         for key, label in ICON_STYLES:
             self.icon.addItem(tr(label), key)
@@ -351,6 +354,20 @@ class DrawerPage(QWidget):
         self.reverse.setChecked(config["reverseArrow"])
         form.addRow(self.reverse)
 
+        self.arrow_tip = QCheckBox(tr("The arrow shows a balloon when you point at it"))
+        self.arrow_tip.setChecked(config["arrowTip"])
+        form.addRow(self.arrow_tip)
+
+        hint = QLabel(tr("The arrow sits next to the items it hides. To place it yourself, "
+                         "choose \"Where I put it myself\", right-click the panel, choose "
+                         "Enter Edit Mode and drag it."))
+        hint.setWordWrap(True)
+        hint.setEnabled(False)
+        form.addRow(hint)
+
+        box = QGroupBox(tr("In the panel or in a pop-up"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
         self.display = QComboBox()
         for key, label in DISPLAYS:
             self.display.addItem(tr(label), key)
@@ -394,10 +411,6 @@ class DrawerPage(QWidget):
                                      "Only a floating panel shows the difference."))
         form.addRow(self.popup_gap)
 
-        self.arrow_tip = QCheckBox(tr("The arrow shows a balloon when you point at it"))
-        self.arrow_tip.setChecked(config["arrowTip"])
-        form.addRow(self.arrow_tip)
-
         self.tray_arrow = QComboBox()
         for key, label in TRAY_ARROWS:
             self.tray_arrow.addItem(tr(label), key)
@@ -409,6 +422,9 @@ class DrawerPage(QWidget):
             "reached by setting them to Show on the System tray tab."))
         form.addRow(tr("The system tray's own arrow (^):"), self.tray_arrow)
 
+        box = QGroupBox(tr("Animation"))
+        form = QFormLayout(box)
+        layout.addWidget(box)
         self.animation = QComboBox()
         for key, label in ANIMATIONS:
             self.animation.addItem(tr(label), key)
@@ -431,12 +447,7 @@ class DrawerPage(QWidget):
                                     "icon takes."))
         form.addRow(tr("Speed:"), self.duration)
 
-        hint = QLabel(tr("The arrow sits next to the items it hides. To place it yourself, "
-                         "choose \"Where I put it myself\", right-click the panel, choose "
-                         "Enter Edit Mode and drag it."))
-        hint.setWordWrap(True)
-        hint.setEnabled(False)
-        form.addRow(hint)
+        layout.addStretch()
         parts.addTab(page, tr("Appearance"))
 
         self.update_enabled()

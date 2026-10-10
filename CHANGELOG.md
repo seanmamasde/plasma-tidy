@@ -8,8 +8,11 @@
   click on the desktop, or on a double-click on the desktop. What only goes with a click
   shows only then. Your own settings stay as they are.
 - The *Panel* tab is called *Drawers* now, because drawers is what it holds. A new *Panel*
-  tab has what is about the panel as a whole: *Show the panel* (it was on *Desktop*) and
+  tab has what is about the panel as a whole: *Show the panel again* (it was *Show the panel*
+  on *Desktop*) and
   *Balloons and previews* (it was below the drawers).
+- A drawer's *Appearance* page is in three groups: the arrow, in the panel or in a pop-up,
+  and animation.
 - A search field at the top of the settings window. Type a word, pick a setting from the
   list, and the window opens the right tab and marks the setting. It finds the names of
   settings, the choices in their lists, and the names of tabs and groups.

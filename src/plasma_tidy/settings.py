@@ -430,7 +430,7 @@ class SettingsDialog(QDialog):
             "A panel that is hidden, by Tidy or by itself, comes into view when you put a "
             "window away, so you can go straight to the next program. It goes again after "
             "the time on the Desktop tab, and stays while the pointer is on it."))
-        form.addRow(tr("Show the panel:"), self.panel_after)
+        form.addRow(tr("Show the panel again:"), self.panel_after)
 
         panel_layout.addWidget(self.drawer_tab.tips_box)
         panel_layout.addStretch()

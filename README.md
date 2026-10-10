@@ -226,7 +226,7 @@ The *Panel* tab is about the panel as a whole.
 
 | Setting | What it does | Default |
 | --- | --- | --- |
-| Show the panel | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide, and stays while the pointer is on it | never |
+| Show the panel again | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide, and stays while the pointer is on it | never |
 
 *Balloons and previews* is about what comes up when you point at something in the
 panel. The balloons switch and the pop-up with or without a preview are Plasma's own settings,

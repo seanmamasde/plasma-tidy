@@ -140,6 +140,7 @@ TRANSLATIONS = {
             "Sluiten met een klik op een lege plek in het paneel",
         "Open when a program asks for attention": "Openen als een programma om aandacht vraagt",
         "Animation:": "Animatie:",
+        "Animation": "Animatie",
         "Slide": "Schuiven",
         "One by one": "Eén voor één",
         "Fade": "Vervagen",
@@ -369,7 +370,9 @@ TRANSLATIONS = {
             "in beeld, net als bewegen boven het bureaublad.\n"
             "Uit: alleen het bureaublad zelf telt.",
         "Also hide the panel (taskbar)": "Paneel (taakbalk) ook verbergen",
-        "Show the panel:": "Paneel tonen:",
+        "Show the panel again:": "Paneel weer tonen:",
+        "The arrow": "Het pijltje",
+        "In the panel or in a pop-up": "In het paneel of in een pop-up",
         "After minimising a window": "Na het minimaliseren van een venster",
         "After minimising or closing a window": "Na het minimaliseren of sluiten van een venster",
         "A panel that is hidden, by Tidy or by itself, comes into view when you put a window "
