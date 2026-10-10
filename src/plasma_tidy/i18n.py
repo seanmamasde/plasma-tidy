@@ -185,8 +185,8 @@ TRANSLATIONS = {
         "Close after a click on something in the drawer": "Sluiten na een klik op iets in de la",
         "Panel stays after starting a program:": "Paneel blijft na het starten van een programma:",
         "Stays open after that click:": "Blijft open na die klik:",
-        "After a click on a program in the drawer the drawer stays this long before it closes, so you see where the program went. With the programs in the middle of the panel a longer time is calmer.":
-            "Na een klik op een programma in de la blijft de la zo lang staan voordat hij sluit, zodat je ziet waar het programma heen ging. Met de programma's in het midden van het paneel is een langere tijd rustiger.",
+        "After a click on a program in the drawer the drawer stays this long before it closes, so you see where the program went. With the programs in the middle of the panel a longer time is calmer. It never closes under the pointer: it waits until the pointer has left the drawer.":
+            "Na een klik op een programma in de la blijft de la zo lang staan voordat hij sluit, zodat je ziet waar het programma heen ging. Met de programma's in het midden van het paneel is een langere tijd rustiger. Hij sluit nooit onder de aanwijzer: hij wacht tot de aanwijzer de la heeft verlaten.",
         "A panel that hides itself or dodges windows goes the moment the window of a program "
         "you start from the drawer opens. With a time here it stays that long, so you can go "
         "on in the panel. 0: it goes at once.":

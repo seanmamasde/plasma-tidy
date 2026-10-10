@@ -37,8 +37,8 @@
   place over instead of jumping. *It goes there* chooses between gliding along on top of them
   and fading over from the old spot to the new one.
 - *Close after a click on something in the drawer* has a time you set: how long the drawer
-  stays open after that click (it was a fixed 0.4 s). It no longer closes under the pointer
-  when you have moved on to something else in the drawer: then it closes once you leave.
+  stays open after that click (it was a fixed 0.4 s). It no longer closes under the pointer:
+  with the pointer still in the drawer it waits, and closes once the pointer has left.
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

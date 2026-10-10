@@ -247,7 +247,8 @@ class DrawerPage(QWidget):
         self.use_delay.setToolTip(tr(
             "After a click on a program in the drawer the drawer stays this long before it "
             "closes, so you see where the program went. With the programs in the middle of "
-            "the panel a longer time is calmer."))
+            "the panel a longer time is calmer. It never closes under the pointer: it waits "
+            "until the pointer has left the drawer."))
         form.addRow(tr("Stays open after that click:"), self.use_delay)
 
         self.keep_panel = QDoubleSpinBox(suffix=" s", minimum=0, maximum=60, singleStep=0.5,

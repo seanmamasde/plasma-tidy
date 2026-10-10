@@ -2867,7 +2867,6 @@ PlasmoidItem {
         if (cfg.closeOnPanelClick && empty && !opening)
             Qt.callLater(() => { root.cfg.closed = true; });
         else if (cfg.closeAfterUse && inDrawerItem(pos)) {
-            useAt = pointerAlong();
             usePending = false;
             useTimer.restart();
         }
@@ -2884,7 +2883,6 @@ PlasmoidItem {
         if (!c || c.isAppletContainer !== true || !drawerItems.some(s => s.item === c)) return;
         keepPanel(cfg.keepPanel);
         if (cfg.closeAfterUse) {
-            useAt = NaN;   // on a part outside the panel: where the pointer is, is not known
             usePending = false;
             useTimer.restart();
         }
@@ -2918,30 +2916,13 @@ PlasmoidItem {
         interval: Math.max(0, root.cfg.useDelay)
         onTriggered: {
             if (root.popupOpen) root.closeAfterPopup = true;
-            // Gone on to something else in the drawer since the click: not closed under the
-            // pointer, but once it leaves. (With the pointer still where it clicked, it closes.)
-            else if (root.pointerHere && root.movedSinceUse()) root.usePending = true;
+            // Never closed under the pointer: with the pointer still in the drawer it waits,
+            // and closes once the pointer has left.
+            else if (root.pointerHere) root.usePending = true;
             else if (!root.cfg.paused) root.cfg.closed = true;
         }
     }
-    // Where the pointer was at that click and where it is now, along the panel, as far as
-    // the widgets of the drawer tell. Unknown counts as not moved.
-    property real useAt: NaN
     property bool usePending: false
-    function pointerAlong() {
-        for (var i = 0; i < watchers.count; i++) {
-            var w = watchers.objectAt(i);
-            try {
-                if (w && w.handler && w.handler.hovered)
-                    return vertical ? w.handler.point.scenePosition.y : w.handler.point.scenePosition.x;
-            } catch (e) {}
-        }
-        return NaN;
-    }
-    function movedSinceUse() {
-        var now = pointerAlong();
-        return !isNaN(useAt) && !isNaN(now) && Math.abs(now - useAt) > Kirigami.Units.gridUnit;
-    }
     Timer {
         id: useLeft
         interval: 400
