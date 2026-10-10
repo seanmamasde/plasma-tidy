@@ -72,7 +72,7 @@ DRAWER_DEFAULTS = {"closed": False, "paused": False, "name": "", "targets": [],
                    "fitPanel": False,
                    "hoverDelay": 200, "autoClose": False, "closeDelay": 2000, "keepPanel": 0,
                    "closeScope": SCOPE_DRAWER, "closeOnPanelClick": False,
-                   "openOnPanelClick": False, "panelClick": "left",
+                   "openOnPanelClick": False, "panelClick": "left", "iconLarge": False,
                    "closeAfterUse": False, "useDelay": 400, "closeOnPanelHide": True,
                    "closeOnMaximized": False, "openOnDesktop": False,
                    "icon": "arrow", "iconCustom": "",
@@ -122,7 +122,8 @@ TASK_POPUPS_PREVIEW = ("preview", "only")  # the ones the task manager shows a p
 TRAY_ARROWS = [("open", "In the panel while the pop-up is open"),
                ("always", "Always in the panel"), ("never", "Never")]
 POPUP_STYLES = [("row", "A row of icons"), ("column", "A column of icons"),
-                ("grid", "A grid with names"), ("list", "A list with names")]
+                ("grid", "A grid with names"), ("list", "A list with names"),
+                ("stack", "A fan out of the arrow, with names")]
 # ms the desktop is given to lay out its icons after a panel changes, before they fade in.
 # Short: the fade starts from nothing, so what is left of the moving is not seen, and the
 # panel and the icons come in together.
@@ -156,6 +157,7 @@ DRAWER_PAGE_TEXTS = [
     "Middle click", "Ctrl + click", "Shift + click", "Alt + click",
     "Shows its contents:", "In the panel", "In a pop-up above the arrow", "Pop-up:",
     "A row of icons", "A column of icons", "A grid with names", "A list with names",
+    "A fan out of the arrow, with names", "As large as the icons of the panel",
     "Place of the pop-up:", "Above the arrow", "At the start of the panel",
     "In the middle of the panel", "At the end of the panel",
     "Pop-up has a background, like the panel",

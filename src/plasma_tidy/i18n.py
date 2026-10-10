@@ -726,6 +726,10 @@ TRANSLATIONS = {
             "op wat er ook achter staat.",
         "A grid with names": "Een raster met namen",
         "A list with names": "Een lijst met namen",
+        "A fan out of the arrow, with names": "Een waaier uit het pijltje, met namen",
+        "As large as the icons of the panel": "Zo groot als de pictogrammen van het paneel",
+        "The arrow is small, a handle. With this it is as large as the icons of the programs and takes a square of the panel, as an icon in a dock does: for a drawer with an icon of its own that shows its programs in a pop-up or a fan.":
+            "Het pijltje is klein, een handvat. Hiermee is het zo groot als de pictogrammen van de programma's en neemt het een vierkant van het paneel in, zoals een pictogram in een dock: voor een la met een eigen pictogram die zijn programma's in een pop-up of een waaier toont.",
         "In the panel: what is in the drawer slides out next to the arrow. In a pop-up: it "
         "stays out of the panel and comes up in a small window above the arrow, so the panel "
         "never changes size; made for a panel that is as long as its contents. Programs are "

@@ -136,7 +136,7 @@ PlasmoidItem {
         if (!same(whole, wholeTargets)) wholeTargets = whole;
         if (!same(tasks, taskManagers)) taskManagers = tasks;
     }
-    onSiblingsChanged: { listTargets(); findGrowers(); }
+    onSiblingsChanged: { listTargets(); findGrowers(); if (big) measureIcon(); }
     Connections {
         target: root.cfg
         function onTargetsChanged() { root.listTargets(); }
@@ -994,7 +994,20 @@ PlasmoidItem {
     onPopupWantedChanged: {
         popupVisited = false;
         if (popupWanted) placeAnchor();
+        fanAway.stop();
+        if (!popupWanted && popup.visible && shelf.fan && cfg.animationDuration > 0) {
+            // A fan goes back into the arrow first; then its window goes.
+            shelf.fanOpen = false;
+            fanAway.restart();
+            return;
+        }
         popup.visible = popupWanted;
+        if (popupWanted && shelf.fan) shelf.fanOpen = true;
+    }
+    Timer {
+        id: fanAway
+        interval: shelf.fanCloseTime + Math.round(Math.max(0, shelf.fanCount - 1) * shelf.fanStagger / 2) + 30
+        onTriggered: if (!root.popupWanted) popup.visible = false
     }
 
     // The pop-up must stand on the panel's edge. A widget in the panel lies a little inside
@@ -1153,7 +1166,17 @@ PlasmoidItem {
             var size = vertical ? shelf.bodyHeight : shelf.bodyWidth;
             var on = standsOn(beside, away);
             var middle = (on.from + on.to) / 2;
-            var start = middle - size / 2;
+            if (shelf.fan) {
+                // Which way a fan bends. Beside a side panel: away from it. Above or under a
+                // panel: to the right, with the names on the left, unless the names have no
+                // room there and do have it on the right.
+                if (vertical) shelf.fanLean = Plasmoid.location === PlasmaCore.Types.RightEdge ? -1 : 1;
+                else {
+                    var ends = screenEnds(away), need = shelf.fanLabel + shelf.fanLabelGap + shelf.fanIcon / 2;
+                    shelf.fanLean = (middle - ends.low >= need || ends.high - middle < need) ? 1 : -1;
+                }
+            }
+            var start = shelf.fan ? middle - shelf.fanAlong : middle - size / 2;
             placed = cfg.popupPlace + "/on " + Math.round(on.from) + ".." + Math.round(on.to) + "/away " + Math.round(away);
             if (panelBar) {
                 var bar = panelBar.mapToItem(root, 0, 0);
@@ -1165,7 +1188,10 @@ PlasmoidItem {
                 var place = cfg.popupPlace;
                 if (mirrored && place === "start") place = "end";
                 else if (mirrored && place === "end") place = "start";
-                if (high - low < size) {
+                if (shelf.fan) {
+                    // A fan comes out of the arrow, wherever the panel ends.
+                    start = middle - shelf.fanAlong;
+                } else if (high - low < size) {
                     // Longer than the panel: nothing to line up with.
                 } else if (place === "start") {
                     start = low;
@@ -1191,8 +1217,8 @@ PlasmoidItem {
                 // edge is on the first or the last icon.
                 var screen = screenEnds(away);
                 var before = Math.round(start - screen.low), after = Math.round(screen.high - (start + size));
-                lead = (before > 0 && before < near / 2) ? before : 0;
-                trail = (after > 0 && after < near / 2) ? after : 0;
+                lead = (!shelf.fan && before > 0 && before < near / 2) ? before : 0;
+                trail = (!shelf.fan && after > 0 && after < near / 2) ? after : 0;
                 placed += "/lead " + lead + "/trail " + trail;
             }
             shelf.lead = lead;
@@ -1286,15 +1312,58 @@ PlasmoidItem {
         // The window itself is see-through; what is behind the icons is drawn below, or not.
         backgroundHints: PlasmaCore.Dialog.NoBackground
         visible: false
-        onVisibleChanged: if (visible) appear.restart()
+        onVisibleChanged: {
+            if (!visible) { shelf.fanOpen = false; return; }
+            if (shelf.fan) { appear.stop(); shelf.opacity = 1; shelf.shift = 0; shelf.fanOpen = true; }
+            else appear.restart();
+        }
 
         mainItem: Item {
             id: shelf
             readonly property string look: root.cfg.popupStyle
             readonly property int count: root.popupItems.length
             // A row or a column of icons, a grid with names, or a list with names.
-            readonly property bool named: look === "grid" || look === "list"
-            readonly property int columns: (look === "list" || look === "column") ? 1
+            readonly property bool named: look === "grid" || look === "list" || fan
+            // A fan, as a stack in a dock has it: the programs come out of the arrow one above
+            // the other, bending away a little, each with its name beside it. It is drawn by
+            // "fanRows" below; the grid of the other looks stays empty.
+            readonly property bool fan: look === "stack"
+            readonly property int fanIcon: Kirigami.Units.iconSizes.large
+            readonly property int fanStep: fanIcon + Math.round(Kirigami.Units.smallSpacing * 1.5)
+            readonly property real fanCurve: 0.8                  // sideways: this times the place squared
+            readonly property int fanLabel: Kirigami.Units.gridUnit * 14
+            readonly property int fanLabelGap: Kirigami.Units.smallSpacing * 2
+            readonly property int fanDockGap: Math.round(Kirigami.Units.gridUnit * 0.7)
+            // No more than the screen has room for above the panel.
+            readonly property int fanCount: Math.max(0, Math.min(count,
+                Math.floor((Screen.height - root.barThick - Kirigami.Units.gridUnit * 3) / fanStep)))
+            readonly property real fanDrift: fanCurve * Math.max(0, fanCount - 1) * Math.max(0, fanCount - 1)
+            // Which way it bends: 1 to the right (or down), -1 the other way. Beside a panel at
+            // the side it bends away from the panel; above or under a panel to where the names
+            // have room, which placeAnchor() works out.
+            property int fanLean: 1
+            // The names: on the side it bends away from, or beside a side panel on the far side.
+            readonly property int fanLabelSide: root.vertical ? fanLean : -fanLean
+            readonly property real fanWidth: fanCount > 0
+                ? fanLabel + fanLabelGap + fanIcon + fanDrift + pad * 2 + (root.vertical ? fanDockGap : 0) : 0
+            readonly property real fanHeight: fanCount > 0 ? fanCount * fanStep + (root.vertical ? 0 : fanDockGap) : 0
+            // The middle of the icon nearest to the arrow, in the body of the pop-up.
+            readonly property real fanBaseX: {
+                if (root.vertical) return fanLean > 0 ? fanDockGap + fanIcon / 2 : fanWidth - fanDockGap - fanIcon / 2;
+                var fromNames = pad + fanLabel + fanLabelGap + fanIcon / 2;
+                return fanLean > 0 ? fromNames : fanWidth - fromNames;
+            }
+            readonly property bool fanDown: Plasmoid.location === PlasmaCore.Types.TopEdge
+            readonly property real fanBaseY: fanDown ? fanDockGap + fanIcon / 2
+                : fanHeight - fanIcon / 2 - (root.vertical ? 0 : fanDockGap)
+            // Where the pop-up has to stand along the panel for that icon to be at the arrow.
+            readonly property real fanAlong: root.vertical ? fanBaseY : fanBaseX
+            // Out or in. The pop-up's window stays until the last one is back in the arrow.
+            property bool fanOpen: false
+            readonly property int fanOpenTime: 240
+            readonly property int fanCloseTime: 160
+            readonly property int fanStagger: 22
+            readonly property int columns: (look === "list" || look === "column" || fan) ? 1
                 : (look === "grid" ? Math.min(4, Math.max(1, count)) : Math.max(1, count))
             // A column stands on the panel: the first program is the one nearest to the arrow.
             readonly property bool upwards: look === "column" && Plasmoid.location === PlasmaCore.Types.BottomEdge
@@ -1311,16 +1380,17 @@ PlasmoidItem {
             readonly property int cellHeight: look === "grid" ? iconSize + pad * 5 + Kirigami.Units.gridUnit
                 : (look === "row" ? across : iconSize + pad * 3)
             // The programs, and next to (or under) them the widgets that were lifted in.
-            readonly property bool stacked: look === "column" || look === "list"
+            readonly property bool stacked: look === "column" || look === "list" || fan
             readonly property real thick: root.container && root.container.parent
                 ? (root.vertical ? root.container.parent.width : root.container.parent.height)
                 : Kirigami.Units.iconSizes.large
-            readonly property real programsWidth: count > 0 ? columns * cellWidth : 0
-            readonly property real programsHeight: count > 0 ? Math.ceil(count / columns) * cellHeight : 0
+            readonly property real programsWidth: fan ? fanWidth : (count > 0 ? columns * cellWidth : 0)
+            readonly property real programsHeight: fan ? fanHeight
+                : (count > 0 ? Math.ceil(count / columns) * cellHeight : 0)
             // With a background: the panel's own, so the pop-up looks like a piece of panel.
             // Without: only the icons, on whatever is behind them.
             // (Around a piece of panel only as much as leaves the icons their room.)
-            readonly property int edge: !root.cfg.popupBackground ? 0
+            readonly property int edge: (!root.cfg.popupBackground || fan) ? 0
                 : (bare ? Math.max(0, Math.min(Kirigami.Units.smallSpacing,
                                                Math.floor((root.barThick - iconSize) / 2)))
                         : Kirigami.Units.smallSpacing * 2)
@@ -1364,7 +1434,7 @@ PlasmoidItem {
                 y: shelf.leadY
                 width: shelf.bodyWidth
                 height: shelf.bodyHeight
-                visible: root.cfg.popupBackground
+                visible: root.cfg.popupBackground && !shelf.fan
                 imagePath: "widgets/panel-background"
             }
             Repeater {
@@ -1503,7 +1573,7 @@ PlasmoidItem {
                 y: shelf.leadY + shelf.edge
                 columns: shelf.columns
                 Repeater {
-                    model: shelf.upwards ? root.popupItems.slice().reverse() : root.popupItems
+                    model: shelf.fan ? [] : (shelf.upwards ? root.popupItems.slice().reverse() : root.popupItems)
                     delegate: MouseArea {
                         id: cell
                         required property var modelData
@@ -1570,6 +1640,122 @@ PlasmoidItem {
                             y: shelf.look === "grid" ? picture.y + picture.height + shelf.pad * 2 : 0
                             width: parent.width - x - shelf.pad
                             height: shelf.look === "grid" ? Kirigami.Units.gridUnit : parent.height
+                        }
+                    }
+                }
+            }
+            // The fan. A click beside the programs puts it away.
+            MouseArea {
+                x: shelf.leadX; y: shelf.leadY
+                width: shelf.bodyWidth; height: shelf.bodyHeight
+                visible: shelf.fan
+                onClicked: root.cfg.closed = true
+            }
+            Repeater {
+                id: fanRows
+                model: shelf.fan ? root.popupItems.slice(0, shelf.fanCount) : []
+                delegate: Item {
+                    id: row
+                    required property var modelData
+                    required property int index
+                    readonly property var info: {
+                        try { return modelData.item.model; } catch (e) { return null; }
+                    }
+                    readonly property bool running: info ? info.IsLauncher !== true : false
+                    readonly property string name: info ? String((running ? info.display : info.AppName)
+                                                                 || info.AppName || info.display || "") : ""
+                    // Where its icon stands when out: one step further from the arrow each,
+                    // and sideways by the curve. And where it comes from: the arrow itself.
+                    readonly property real homeX: shelf.fanBaseX + shelf.fanLean * shelf.fanCurve * index * index
+                    readonly property real homeY: shelf.fanBaseY + (shelf.fanDown ? 1 : -1) * index * shelf.fanStep
+                    readonly property real fromX: root.vertical
+                        ? (shelf.fanLean > 0 ? -root.barThick / 2 : shelf.fanWidth + root.barThick / 2) : shelf.fanBaseX
+                    readonly property real fromY: root.vertical ? shelf.fanBaseY
+                        : (shelf.fanDown ? -root.barThick / 2 : shelf.fanHeight + root.barThick / 2)
+                    // It follows the slope of the curve where it stands.
+                    readonly property real slope: (shelf.fanDown ? -1 : 1) * shelf.fanLean
+                        * Math.atan2(2 * shelf.fanCurve * index, shelf.fanStep) * 180 / Math.PI
+                    property real out: 0      // 0: in the arrow, 1: out
+                    x: shelf.leadX + fromX + (homeX - fromX) * out
+                    y: shelf.leadY + fromY + (homeY - fromY) * out
+                    width: 0; height: 0
+                    transformOrigin: Item.TopLeft
+                    scale: 0.2 + 0.8 * out
+                    rotation: slope * out
+                    opacity: Math.min(1, out * 1.4)
+                    SequentialAnimation {
+                        id: fly
+                        property real to: 0
+                        property int wait: 0
+                        property int time: 0
+                        property int curve: Easing.OutCubic
+                        PauseAnimation { duration: fly.wait }
+                        NumberAnimation { target: row; property: "out"; to: fly.to; duration: fly.time; easing.type: fly.curve }
+                    }
+                    function go(open) {
+                        fly.stop();
+                        fly.to = open ? 1 : 0;
+                        // Out: the nearest first. In: the one furthest out leaves first.
+                        fly.wait = open ? index * shelf.fanStagger
+                                        : Math.round((shelf.fanCount - 1 - index) * shelf.fanStagger / 2);
+                        fly.time = root.cfg.animationDuration <= 0 ? 0 : (open ? shelf.fanOpenTime : shelf.fanCloseTime);
+                        fly.curve = open ? Easing.OutCubic : Easing.InQuad;
+                        fly.start();
+                    }
+                    Connections {
+                        target: shelf
+                        function onFanOpenChanged() { row.go(shelf.fanOpen); }
+                    }
+                    Component.onCompleted: if (shelf.fanOpen) go(true)
+                    MouseArea {
+                        id: rowArea
+                        readonly property real reach: shelf.fanIcon / 2 + shelf.fanLabelGap + pill.width
+                        x: shelf.fanLabelSide > 0 ? -shelf.fanIcon / 2 : -reach
+                        y: -shelf.fanIcon / 2
+                        width: shelf.fanIcon / 2 + reach
+                        height: shelf.fanIcon
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                        onClicked: mouse => root.useTask(row.modelData, mouse.button)
+                    }
+                    Kirigami.Icon {
+                        id: fanPicture
+                        x: -width / 2; y: -height / 2
+                        width: shelf.fanIcon; height: shelf.fanIcon
+                        source: row.info ? row.info.decoration : ""
+                        active: rowArea.containsMouse
+                    }
+                    Rectangle {      // open: a small bar under its icon, as in the panel
+                        visible: row.running
+                        width: Math.round(shelf.fanIcon * 0.3); height: 2; radius: 1
+                        color: (row.info && row.info.IsDemandingAttention === true)
+                            ? Kirigami.Theme.neutralTextColor : Kirigami.Theme.highlightColor
+                        x: -width / 2; y: shelf.fanIcon / 2 - 1
+                    }
+                    Rectangle {
+                        id: pill
+                        readonly property int inside: Kirigami.Units.smallSpacing * 2
+                        width: Math.min(shelf.fanLabel, label.implicitWidth + 2 * inside)
+                        height: label.implicitHeight + Kirigami.Units.smallSpacing * 2
+                        x: shelf.fanLabelSide > 0 ? shelf.fanIcon / 2 + shelf.fanLabelGap
+                                                  : -shelf.fanIcon / 2 - shelf.fanLabelGap - width
+                        y: -height / 2
+                        radius: Kirigami.Units.smallSpacing * 2
+                        color: rowArea.containsMouse
+                            ? Qt.tint(Kirigami.Theme.backgroundColor, Qt.alpha(Kirigami.Theme.highlightColor, 0.35))
+                            : Qt.alpha(Kirigami.Theme.backgroundColor, 0.92)
+                        border.width: 1
+                        border.color: Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                        Text {
+                            id: label
+                            x: pill.inside
+                            width: pill.width - 2 * pill.inside
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: row.name
+                            color: Kirigami.Theme.textColor
+                            font: Kirigami.Theme.defaultFont
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
                         }
                     }
                 }
@@ -3141,7 +3327,13 @@ PlasmoidItem {
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
-    readonly property int thickness: Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing
+    // The arrow is small, a handle. With an icon of its own it can also be as large as the
+    // icons of the panel and take a square of the panel, as an icon in a dock does.
+    readonly property bool big: cfg.iconLarge && cfg.icon !== "none"
+    onBigChanged: if (big) measureIcon()
+    readonly property int thickness: big
+        ? Math.max(panelIcon + Kirigami.Units.smallSpacing, Math.round(barThick))
+        : Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing
     // An arrow without an icon is only empty room in the panel. It can give that up, as long
     // as the drawer can be opened another way. The room is back whenever it is needed: while
     // you edit the panel, while the drawer is paused (a click on it resumes), and, if that is
@@ -3229,7 +3421,7 @@ PlasmoidItem {
 
             Kirigami.Icon {
                 anchors.centerIn: parent
-                width: Kirigami.Units.iconSizes.small
+                width: root.big ? root.panelIcon : Kirigami.Units.iconSizes.small
                 height: width
                 id: arrow
                 source: root.arrowIcon

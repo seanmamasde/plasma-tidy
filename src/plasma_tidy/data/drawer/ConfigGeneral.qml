@@ -28,6 +28,7 @@ KCM.SimpleKCM {
     property int cfg_keepPanel
     property bool cfg_closeOnPanelClick
     property bool cfg_openOnPanelClick
+    property bool cfg_iconLarge
     property string cfg_panelClick
     property bool cfg_closeAfterUse
     property int cfg_useDelay
@@ -250,6 +251,12 @@ KCM.SimpleKCM {
             onEditingFinished: page.cfg_iconCustom = text
         }
         QQC2.CheckBox {
+            visible: page.cfg_icon !== "none"
+            text: page.t("As large as the icons of the panel")
+            checked: page.cfg_iconLarge
+            onToggled: page.cfg_iconLarge = checked
+        }
+        QQC2.CheckBox {
             visible: page.cfg_icon === "none"
             text: page.t("Without an icon the arrow takes no room in the panel")
             checked: page.cfg_arrowSlim
@@ -285,7 +292,8 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: page.t("Pop-up:")
             enabled: page.cfg_display === "popup"
             choices: [["row", "A row of icons"], ["column", "A column of icons"],
-                      ["grid", "A grid with names"], ["list", "A list with names"]]
+                      ["grid", "A grid with names"], ["list", "A list with names"],
+                      ["stack", "A fan out of the arrow, with names"]]
             value: page.cfg_popupStyle
             onChosen: value => page.cfg_popupStyle = value
         }

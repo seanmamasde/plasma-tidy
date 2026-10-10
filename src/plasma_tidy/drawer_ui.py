@@ -312,6 +312,13 @@ class DrawerPage(QWidget):
         row.addWidget(self.icon_custom, 1)
         row.addWidget(self.icon_choose)
         form.addRow("", row)
+        self.icon_large = QCheckBox(tr("As large as the icons of the panel"))
+        self.icon_large.setChecked(config["iconLarge"])
+        self.icon_large.setToolTip(tr(
+            "The arrow is small, a handle. With this it is as large as the icons of the "
+            "programs and takes a square of the panel, as an icon in a dock does: for a "
+            "drawer with an icon of its own that shows its programs in a pop-up or a fan."))
+        form.addRow("", self.icon_large)
 
         self.arrow_slim = QCheckBox(tr("Without an icon the arrow takes no room in the panel"))
         self.arrow_slim.setChecked(config["arrowSlim"])
@@ -385,6 +392,7 @@ class DrawerPage(QWidget):
         for key, label in POPUP_STYLES:
             self.popup_style.addItem(tr(label), key)
         self.popup_style.setCurrentIndex(max(0, self.popup_style.findData(config["popupStyle"])))
+        self.popup_style.currentIndexChanged.connect(self.update_enabled)
         form.addRow(tr("Pop-up:"), self.popup_style)
 
         self.popup_place = QComboBox()
@@ -475,7 +483,9 @@ class DrawerPage(QWidget):
         self.programs_box.setEnabled(tasks)
         popup = self.display.currentData() == DISPLAY_POPUP
         self.popup_style.setEnabled(popup)
-        self.popup_place.setEnabled(popup)
+        # A fan comes out of the arrow, and has no background of its own.
+        fan = self.popup_style.currentData() == "stack"
+        self.popup_place.setEnabled(popup and not fan)
         self.popup_background.setEnabled(popup)
         self.popup_gap.setEnabled(popup)
         self.tray_arrow.setEnabled(popup and any(
@@ -493,6 +503,7 @@ class DrawerPage(QWidget):
         custom = self.icon.currentData() == "custom"
         self.icon_custom.setEnabled(custom)
         self.icon_choose.setEnabled(custom)
+        self.icon_large.setEnabled(self.icon.currentData() != "none")
         bare = self.icon.currentData() == "none"
         self.arrow_slim.setEnabled(bare)
         self.arrow_slim_mark.setEnabled(bare and self.arrow_slim.isChecked())
@@ -525,6 +536,7 @@ class DrawerPage(QWidget):
                 "closeOnPanelClick": self.panel_click.isChecked(),
                 "openOnPanelClick": self.panel_open.isChecked(),
                 "panelClick": self.panel_kind.currentData(),
+                "iconLarge": self.icon_large.isChecked(),
                 "closeAfterUse": self.after_use.isChecked(),
                 "useDelay": round(self.use_delay.value() * 1000),
                 "closeOnPanelHide": self.on_panel_hide.isChecked(),
