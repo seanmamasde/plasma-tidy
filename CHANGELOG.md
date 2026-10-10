@@ -32,6 +32,9 @@
 - With Modish's zoom mod, the pointer on the part of a grown icon that sticks out of the panel
   counts as on that icon and in the panel: a drawer no longer closes by itself under it.
   A click there counts as a click on the icon: the drawer closes after use if that is set.
+- Every drawer can have its own click on an empty spot of the panel: the left button, the
+  middle button, or a left click with Ctrl, Shift or Alt held (*That click is*). So one click
+  opens the programs and another the system tray.
 - A program that opens and goes to the open programs (*Open programs: All in front* or *All
   at the back*), or closes and goes back, does so in one movement: the icons it passes glide a
   place over instead of jumping. *It goes there* chooses between gliding along on top of them

@@ -2617,11 +2617,13 @@ PlasmoidItem {
                 root.useTask(root.popupItems[Number(act[1])], Qt.LeftButton);
             if (String(root.cfg.debug).indexOf("tap:") === 0) {
                 var at = parseFloat(String(root.cfg.debug).split(":")[1]);
+                // "tap:<pixels>:<anything>:<kind>": with another click than the plain left one
+                var how = String(root.cfg.debug).split(":")[3] || "left";
                 var before = root.cfg.closed;
-                var others = root.anyOpensOnClick();
-                root.panelTapped(at);
+                var others = root.anyOpensOnClick(how);
+                root.panelTapped(at, how);
                 Qt.callLater(() => console.warn("TIDYTAP " + JSON.stringify({id: Plasmoid.id,
-                    at: at, empty: root.isEmptySpot(at), opens: root.cfg.openOnPanelClick,
+                    at: at, how: how, mine: root.cfg.panelClick, empty: root.isEmptySpot(at), opens: root.cfg.openOnPanelClick,
                     closes: root.cfg.closeOnPanelClick, anyOpens: others,
                     before: before, closed: root.cfg.closed})));
             }
@@ -2821,9 +2823,11 @@ PlasmoidItem {
     Component {
         id: tapComponent
         TapHandler {
-            acceptedButtons: Qt.LeftButton
+            id: tap
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton
             onTapped: (eventPoint, button) => root.panelTapped(
-                root.vertical ? eventPoint.position.y : eventPoint.position.x)
+                root.vertical ? eventPoint.position.y : eventPoint.position.x,
+                root.clickKind(button, tap.point.modifiers))
         }
     }
     property var panelTap: null
@@ -2834,29 +2838,43 @@ PlasmoidItem {
     // open, it closes the ones that are set to close that way. Each drawer decides from how
     // things are at the moment of the click and acts a moment later, so that one drawer
     // opening does not make the next one think all were open.
-    function opensOnClick(conf) {
-        return conf.closed && !conf.paused && conf.openOnPanelClick;
+    // Which click it was: every drawer has its own (the left button, the middle one, or the
+    // left one with a key held), so that one click opens the programs and another the tray.
+    function clickKind(button, modifiers) {
+        if (button === Qt.MiddleButton) return "middle";
+        if (modifiers & Qt.ControlModifier) return "ctrl";
+        if (modifiers & Qt.ShiftModifier) return "shift";
+        if (modifiers & Qt.AltModifier) return "alt";
+        return "left";
     }
-    function anyOpensOnClick() {
-        if (opensOnClick(cfg)) return true;
+    function opensOnClick(conf, kind) {
+        return conf.closed && !conf.paused && conf.openOnPanelClick && (conf.panelClick || "left") === kind;
+    }
+    function anyOpensOnClick(kind) {
+        kind = kind || "left";
+        if (opensOnClick(cfg, kind)) return true;
         for (var i = 0; i < siblings.length; i++) {
             if (siblings[i].plugin !== Plasmoid.pluginName) continue;
             try {
-                if (opensOnClick(siblings[i].item.applet.plasmoid.configuration)) return true;
+                if (opensOnClick(siblings[i].item.applet.plasmoid.configuration, kind)) return true;
             } catch (e) {}
         }
         return false;
     }
-    function panelTapped(pos) {
-        moveNote("tap", Math.round(pos));
+    function panelTapped(pos, kind) {
+        kind = kind || "left";
+        moveNote("tap", [Math.round(pos), kind]);
         if (cfg.paused) return;
-        if (!cfg.closed && inDrawerItem(pos)) keepPanel(cfg.keepPanel);
+        // Using something in the drawer is a plain left click. Opening and closing on an empty
+        // spot goes by the click that is set for this drawer.
+        var plain = kind === "left", mine = kind === (cfg.panelClick || "left");
+        if (plain && !cfg.closed && inDrawerItem(pos)) keepPanel(cfg.keepPanel);
         if (cfg.closed) {
-            if (cfg.openOnPanelClick && isEmptySpot(pos))
+            if (mine && cfg.openOnPanelClick && isEmptySpot(pos))
                 Qt.callLater(() => { root.cfg.closed = false; });
             return;
         }
-        var empty = isEmptySpot(pos), opening = empty && anyOpensOnClick();
+        var empty = mine && isEmptySpot(pos), opening = empty && anyOpensOnClick(kind);
         // Another drawer opens on this click: this one stays as long as that one. Its time
         // for closing by itself starts anew, or it would close a moment later (the pointer
         // left it a while ago) and the two would take turns from then on.
@@ -2866,7 +2884,7 @@ PlasmoidItem {
         }
         if (cfg.closeOnPanelClick && empty && !opening)
             Qt.callLater(() => { root.cfg.closed = true; });
-        else if (cfg.closeAfterUse && inDrawerItem(pos)) {
+        else if (plain && cfg.closeAfterUse && inDrawerItem(pos)) {
             usePending = false;
             useTimer.restart();
         }

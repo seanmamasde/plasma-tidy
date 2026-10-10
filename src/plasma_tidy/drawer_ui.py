@@ -15,8 +15,8 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, 
 
 from .consts import (ACTIVE_PLACES, ANIMATIONS, APP_NAME, DISPLAYS, DISPLAY_POPUP, DRAWER_SKIP,
                      FOLDER_PLUGIN, ICON_STYLES, MARK_ATTENTION, MARK_COUNT, MARK_NONE,
-                     MARK_OPEN, MOVE_STYLES, OPEN_CLICK, OPEN_HOVER, PANEL_PLACES, PLACE_AFTER,
-                     PLACE_BEFORE, PLACE_MANUAL, POPUP_PLACES, POPUP_STYLES, SCOPE_DRAWER,
+                     MARK_OPEN, MOVE_STYLES, OPEN_CLICK, OPEN_HOVER, PANEL_CLICKS, PANEL_PLACES,
+                     PLACE_AFTER, PLACE_BEFORE, PLACE_MANUAL, POPUP_PLACES, POPUP_STYLES, SCOPE_DRAWER,
                      SCOPE_PANEL, TASKS_ALL, TASKS_PINNED, TASK_PLUGINS, TASK_POPUPS,
                      TRAY_ARROWS)
 from .i18n import tr
@@ -198,13 +198,25 @@ class DrawerPage(QWidget):
 
         self.panel_open = QCheckBox(tr("Open with a click on an empty spot in the panel"))
         self.panel_open.setChecked(config["openOnPanelClick"])
-        self.panel_open.setToolTip(tr("A left click where the panel is empty opens this drawer. "
-                                      "As long as a drawer that opens this way is closed, the "
-                                      "click only opens; it closes when all of them are open."))
+        self.panel_open.setToolTip(tr("A click where the panel is empty opens this drawer. As "
+                                      "long as a drawer that opens with the same click is "
+                                      "closed, the click only opens; it closes when all of "
+                                      "them are open."))
         if self.fit:
             self.panel_open.setToolTip(tr("This panel is as long as its contents: it has no "
                                           "empty spot to click on."))
         form.addRow(self.panel_open)
+        self.panel_open.toggled.connect(self.update_enabled)
+        self.panel_kind = QComboBox()
+        for key, label in PANEL_CLICKS:
+            self.panel_kind.addItem(tr(label), key)
+        self.panel_kind.setCurrentIndex(max(0, self.panel_kind.findData(config["panelClick"])))
+        self.panel_kind.setToolTip(tr(
+            "Which click on an empty spot of the panel opens this drawer, and closes it if "
+            "that is ticked below. Give two drawers a different click and each opens on its "
+            "own: the programs with a left click, say, and the system tray with the middle "
+            "button. Drawers with the same click go together."))
+        form.addRow(tr("That click is:"), self.panel_kind)
 
         self.on_desktop = QCheckBox(tr("Open when the desktop is shown"))
         self.on_desktop.setChecked(config["openOnDesktop"])
@@ -233,6 +245,7 @@ class DrawerPage(QWidget):
         self.panel_click = QCheckBox(tr("Close with a click on an empty spot in the panel"))
         self.panel_click.setChecked(config["closeOnPanelClick"])
         form.addRow(self.panel_click)
+        self.panel_click.toggled.connect(self.update_enabled)
         if self.fit:
             self.panel_click.setToolTip(tr("This panel is as long as its contents: it has no "
                                            "empty spot to click on."))
@@ -461,6 +474,8 @@ class DrawerPage(QWidget):
         # A panel as long as its contents has no empty spot to click on.
         for box in (self.panel_click, self.panel_open):
             box.setEnabled(not self.fit)
+        self.panel_kind.setEnabled(not self.fit and (self.panel_click.isChecked()
+                                                     or self.panel_open.isChecked()))
         self.hover_delay.setEnabled(self.open_on.currentData() == OPEN_HOVER)
         self.close_delay.setEnabled(bool(self.auto_close.currentData()))
         self.use_delay.setEnabled(self.after_use.isChecked())
@@ -498,6 +513,7 @@ class DrawerPage(QWidget):
                 "keepPanel": round(self.keep_panel.value() * 1000),
                 "closeOnPanelClick": self.panel_click.isChecked(),
                 "openOnPanelClick": self.panel_open.isChecked(),
+                "panelClick": self.panel_kind.currentData(),
                 "closeAfterUse": self.after_use.isChecked(),
                 "useDelay": round(self.use_delay.value() * 1000),
                 "closeOnPanelHide": self.on_panel_hide.isChecked(),

@@ -186,6 +186,7 @@ The settings of a drawer come in three parts.
 | Shortcut | A key for this drawer alone | none |
 | Open when a program asks for attention | A hidden program that wants you opens the drawer | on |
 | Open with a click on an empty spot in the panel | A left click where the panel is empty opens the drawer. As long as a drawer that opens this way is closed, the click only opens; it closes when all of them are open | off |
+| That click is | Which click on an empty spot opens the drawer, and closes it if that is ticked: the left button, the middle button, or a left click with Ctrl, Shift or Alt held. Drawers with a different click each open on their own; drawers with the same click go together | left click |
 | Open when the desktop is shown | Opens when you go to the desktop; needs Tidy running | off |
 | Close by itself | Never, when the pointer leaves the drawer (the arrow and the items it shows), or when it leaves the panel | never |
 | Closes after | How long after the pointer left | 2 s |

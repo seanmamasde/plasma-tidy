@@ -28,6 +28,7 @@ KCM.SimpleKCM {
     property int cfg_keepPanel
     property bool cfg_closeOnPanelClick
     property bool cfg_openOnPanelClick
+    property string cfg_panelClick
     property bool cfg_closeAfterUse
     property int cfg_useDelay
     property bool cfg_closeOnPanelHide
@@ -158,6 +159,14 @@ KCM.SimpleKCM {
             text: page.t("Open with a click on an empty spot in the panel")
             checked: page.cfg_openOnPanelClick
             onToggled: page.cfg_openOnPanelClick = checked
+        }
+        Choice {
+            Kirigami.FormData.label: page.t("That click is:")
+            enabled: page.cfg_openOnPanelClick || page.cfg_closeOnPanelClick
+            choices: [["left", "Left click"], ["middle", "Middle click"], ["ctrl", "Ctrl + click"],
+                      ["shift", "Shift + click"], ["alt", "Alt + click"]]
+            value: page.cfg_panelClick
+            onChosen: value => page.cfg_panelClick = value
         }
         QQC2.CheckBox {
             text: page.t("Open when the desktop is shown")

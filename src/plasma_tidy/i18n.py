@@ -593,10 +593,18 @@ TRANSLATIONS = {
             "scherm blijft boven het paneel.",
         "Open with a click on an empty spot in the panel":
             "Openen met een klik op een lege plek in het paneel",
-        "A left click where the panel is empty opens this drawer. As long as a drawer that "
-        "opens this way is closed, the click only opens; it closes when all of them are open.":
-            "Een linkerklik waar het paneel leeg is opent deze la. Zolang er een la dicht is "
-            "die zo opent, opent de klik alleen; sluiten gebeurt als ze allemaal open staan.",
+        "A click where the panel is empty opens this drawer. As long as a drawer that opens "
+        "with the same click is closed, the click only opens; it closes when all of them are open.":
+            "Een klik waar het paneel leeg is opent deze la. Zolang er een la dicht is die met "
+            "dezelfde klik opent, opent de klik alleen; sluiten gebeurt als ze allemaal open staan.",
+        "That click is:": "Die klik is:",
+        "Left click": "Linkerklik",
+        "Middle click": "Middelklik",
+        "Ctrl + click": "Ctrl + klik",
+        "Shift + click": "Shift + klik",
+        "Alt + click": "Alt + klik",
+        "Which click on an empty spot of the panel opens this drawer, and closes it if that is ticked below. Give two drawers a different click and each opens on its own: the programs with a left click, say, and the system tray with the middle button. Drawers with the same click go together.":
+            "Welke klik op een lege plek van het paneel deze la opent, en sluit als dat hieronder is aangevinkt. Geef twee laden een andere klik en elk opent apart: de programma's met een linkerklik bijvoorbeeld, en het systeemvak met de middelste knop. Laden met dezelfde klik gaan samen.",
         "and":
             "en",
         "Applies right now":

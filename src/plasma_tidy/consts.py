@@ -72,7 +72,7 @@ DRAWER_DEFAULTS = {"closed": False, "paused": False, "name": "", "targets": [],
                    "fitPanel": False,
                    "hoverDelay": 200, "autoClose": False, "closeDelay": 2000, "keepPanel": 0,
                    "closeScope": SCOPE_DRAWER, "closeOnPanelClick": False,
-                   "openOnPanelClick": False,
+                   "openOnPanelClick": False, "panelClick": "left",
                    "closeAfterUse": False, "useDelay": 400, "closeOnPanelHide": True,
                    "closeOnMaximized": False, "openOnDesktop": False,
                    "icon": "arrow", "iconCustom": "",
@@ -138,6 +138,8 @@ POPUP_PLACES = [("arrow", "Above the arrow"), ("start", "At the start of the pan
 ACTIVE_PLACES = [("fixed", "On their pinned spot"), ("start", "All in front"),
                  ("end", "All at the back")]
 MOVE_STYLES = [("glide", "Gliding"), ("fade", "Fading over")]
+PANEL_CLICKS = [("left", "Left click"), ("middle", "Middle click"), ("ctrl", "Ctrl + click"),
+                ("shift", "Shift + click"), ("alt", "Alt + click")]
 ICON_STYLES = [("arrow", "Arrow"), ("double", "Double arrow"), ("triangle", "Triangle"),
                ("dots", "Dots"), ("menu", "Menu lines"), ("handle", "Grip"),
                ("custom", "My own icon"), ("none", "No icon")]
@@ -150,7 +152,8 @@ DRAWER_PAGE_TEXTS = [
     "Works while Tidy is running.", "Close by itself:", "Never",
     "When the pointer leaves the drawer", "When the pointer leaves the panel", "Closes after:",
     "Close with a click on an empty spot in the panel",
-    "Open with a click on an empty spot in the panel",
+    "Open with a click on an empty spot in the panel", "That click is:", "Left click",
+    "Middle click", "Ctrl + click", "Shift + click", "Alt + click",
     "Shows its contents:", "In the panel", "In a pop-up above the arrow", "Pop-up:",
     "A row of icons", "A column of icons", "A grid with names", "A list with names",
     "Place of the pop-up:", "Above the arrow", "At the start of the panel",
