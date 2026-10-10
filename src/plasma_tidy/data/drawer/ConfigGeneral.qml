@@ -46,6 +46,7 @@ KCM.SimpleKCM {
     property bool cfg_arrowSlimMark
     property int cfg_animationDuration
     property string cfg_activePlace
+    property string cfg_moveStyle
     property bool cfg_reverseArrow
     property string cfg_indicator
     property string cfg_icon
@@ -122,6 +123,13 @@ KCM.SimpleKCM {
                       ["end", "All at the back"]]
             value: page.cfg_activePlace
             onChosen: value => page.cfg_activePlace = value
+        }
+        Choice {
+            Kirigami.FormData.label: page.t("It goes there:")
+            enabled: page.hasTasks && page.cfg_activePlace !== "fixed"
+            choices: [["glide", "Gliding"], ["fade", "Fading over"]]
+            value: page.cfg_moveStyle
+            onChosen: value => page.cfg_moveStyle = value
         }
 
         // --- opening and closing ---

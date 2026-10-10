@@ -13,12 +13,12 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, 
                              QSizePolicy, QSpinBox, QStackedWidget, QTabWidget, QVBoxLayout,
                              QWidget)
 
-from .consts import (ACTIVE_PLACES, ANIMATIONS, APP_NAME, DISPLAY_POPUP, DISPLAYS, DRAWER_SKIP,
-                     FOLDER_PLUGIN,
-                     ICON_STYLES, POPUP_PLACES, POPUP_STYLES, TASK_POPUPS, TRAY_ARROWS,
-                     MARK_ATTENTION, MARK_COUNT, MARK_NONE, MARK_OPEN, OPEN_CLICK, OPEN_HOVER,
-                     PANEL_PLACES, PLACE_AFTER, PLACE_BEFORE, PLACE_MANUAL, SCOPE_DRAWER,
-                     SCOPE_PANEL, TASKS_ALL, TASKS_PINNED, TASK_PLUGINS)
+from .consts import (ACTIVE_PLACES, ANIMATIONS, APP_NAME, DISPLAYS, DISPLAY_POPUP, DRAWER_SKIP,
+                     FOLDER_PLUGIN, ICON_STYLES, MARK_ATTENTION, MARK_COUNT, MARK_NONE,
+                     MARK_OPEN, MOVE_STYLES, OPEN_CLICK, OPEN_HOVER, PANEL_PLACES, PLACE_AFTER,
+                     PLACE_BEFORE, PLACE_MANUAL, POPUP_PLACES, POPUP_STYLES, SCOPE_DRAWER,
+                     SCOPE_PANEL, TASKS_ALL, TASKS_PINNED, TASK_PLUGINS, TASK_POPUPS,
+                     TRAY_ARROWS)
 from .i18n import tr
 from .plasma import app_icon, panel_widget_name, plasma_balloons
 from .widgets import install_drawer, new_drawer
@@ -119,6 +119,17 @@ class DrawerPage(QWidget):
                                         "back, the open programs stand together and the pinned "
                                         "ones slide out next to them."))
         form.addRow(tr("Open programs:"), self.active_place)
+        self.active_place.currentIndexChanged.connect(self.update_enabled)
+        self.move_style = QComboBox()
+        for key, label in MOVE_STYLES:
+            self.move_style.addItem(tr(label), key)
+        self.move_style.setCurrentIndex(max(0, self.move_style.findData(config["moveStyle"])))
+        self.move_style.setToolTip(tr(
+            "How a program that opens goes to the open programs, and back when it closes. "
+            "Gliding: it slides there on top of the icons it passes. Fading over: it fades "
+            "out on its old spot and comes up on the new one. The icons it passes glide a "
+            "place over either way."))
+        form.addRow(tr("It goes there:"), self.move_style)
 
         # Per program: in the drawer, or kept in the panel.
         self.programs = {}
@@ -435,6 +446,7 @@ class DrawerPage(QWidget):
                     for check, plugin in self.targets.values())
         self.task_mode.setEnabled(tasks)
         self.active_place.setEnabled(tasks)
+        self.move_style.setEnabled(tasks and self.active_place.currentData() != "fixed")
         self.programs_box.setEnabled(tasks)
         popup = self.display.currentData() == DISPLAY_POPUP
         self.popup_style.setEnabled(popup)
@@ -474,6 +486,7 @@ class DrawerPage(QWidget):
                              if i not in self.programs]
                             + [i for i, check in self.programs.items() if not check.isChecked()],
                 "activePlace": self.active_place.currentData(),
+                "moveStyle": self.move_style.currentData(),
                 "openOn": self.open_on.currentData(),
                 "hoverDelay": self.hover_delay.value(),
                 "openOnAttention": self.attention.isChecked(),

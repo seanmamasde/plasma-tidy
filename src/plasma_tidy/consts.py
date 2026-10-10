@@ -77,7 +77,7 @@ DRAWER_DEFAULTS = {"closed": False, "paused": False, "name": "", "targets": [],
                    "closeOnMaximized": False, "openOnDesktop": False,
                    "icon": "arrow", "iconCustom": "",
                    "openOnAttention": True, "reverseArrow": False,
-                   "animation": "slide", "animationDuration": 250, "activePlace": "fixed",
+                   "animation": "slide", "animationDuration": 250, "activePlace": "fixed", "moveStyle": "glide",
                    "indicator": MARK_OPEN,
                    "place": PLACE_BEFORE}
 MODE_ACTIVITY = "activity"
@@ -137,6 +137,7 @@ POPUP_PLACES = [("arrow", "Above the arrow"), ("start", "At the start of the pan
                 ("middle", "In the middle of the panel"), ("end", "At the end of the panel")]
 ACTIVE_PLACES = [("fixed", "On their pinned spot"), ("start", "All in front"),
                  ("end", "All at the back")]
+MOVE_STYLES = [("glide", "Gliding"), ("fade", "Fading over")]
 ICON_STYLES = [("arrow", "Arrow"), ("double", "Double arrow"), ("triangle", "Triangle"),
                ("dots", "Dots"), ("menu", "Menu lines"), ("handle", "Grip"),
                ("custom", "My own icon"), ("none", "No icon")]
@@ -166,6 +167,7 @@ DRAWER_PAGE_TEXTS = [
     "Close when a window that fills the screen comes to the front",
     "Close when the panel slides out of view", "Appearance", "Icon:",
     "Open programs:", "On their pinned spot", "All in front", "All at the back", "Animation:",
+    "It goes there:", "Gliding", "Fading over",
     "Slide", "Grow", "One by one", "Fade", "Speed:",
     "Double arrow", "Triangle", "Dots", "Menu lines", "Grip", "My own icon", "No icon",
     "Icon name or image file", "Mark on the closed drawer:", "None",

@@ -47,6 +47,7 @@
     <entry name="animation" type="String"><default>slide</default></entry>
     <entry name="animationDuration" type="Int"><default>250</default></entry>
     <entry name="activePlace" type="String"><default>fixed</default></entry>
+    <entry name="moveStyle" type="String"><default>glide</default></entry>
     <entry name="reverseArrow" type="Bool"><default>false</default></entry>
     <entry name="indicator" type="String"><default>open</default></entry>
     <entry name="place" type="String"><default>before</default></entry>

@@ -777,7 +777,7 @@ PlasmoidItem {
         function onTipGapChanged() { root.tipApply(); }
     }
     property int tasksMovingCount: 0
-    readonly property bool tasksMoving: tasksMovingCount > 0 || settle.running
+    readonly property bool tasksMoving: tasksMovingCount > 0 || settle.running || moveActive
     Timer { id: settle; interval: 60 }   // bridges the gap between two icons of a cascade
     Timer { id: taskSync; interval: 30; onTriggered: root.syncTaskHiders() }
     onTaskManagersChanged: starting ? syncTaskHiders() : taskSync.restart()
@@ -1626,6 +1626,83 @@ PlasmoidItem {
     property var slideSet: []          // the hiders of the icons that come or go
     property real knobTravel: 0        // how far the arrow travels, when it stands after them
     Timer { id: slideKick; interval: 0; onTriggered: root.runSlide() }
+
+    // A program that opens (or closes) changes place in the row: to the open programs, or back
+    // to its pinned spot. The task manager lets that one icon slide over the others while the
+    // ones it passes jump a place. Here the whole of it is one movement: the icons it passes
+    // glide, and the one that travels glides along on top of them or fades over from the old
+    // spot to the new one, as is set. Each icon is drawn "moveBy" away from its new place at
+    // the start and comes home as moveP goes from 1 to 0.
+    property real moveP: 0
+    property bool moveActive: false
+    property bool moveBusy: false       // from before the row changes: no animation of the task manager's own
+    property var moveSet: []            // the hiders of the icons that are on their way
+    // Another program may be the one that puts the icons along the panel (Modish says so with
+    // "placesIcons" on its link). Then the drawer only tells how far each icon is on its way,
+    // with shiftOf() on its own link, and that program draws it there. A program that moves
+    // icons without saying so leaves no room for this: the row then changes as it used to.
+    function iconPlacers() {
+        var placer = false, mover = false;
+        if (container && container.parent) {
+            var kids = container.parent.children;
+            for (var i = 0; i < kids.length; i++) {
+                try {
+                    var link = kids[i].applet.wispwareLink;
+                    if (!link || kids[i] === container || link.version > linkKnown) continue;
+                    if (link.placesIcons === true) placer = true;
+                    else if (typeof link.shiftOf === "function" && link.kind !== "tidy.drawer") mover = true;
+                } catch (e) {}
+            }
+        }
+        return placer ? "other" : (mover ? "unknown" : "none");
+    }
+    property bool moveByOther: false    // this move is drawn by the other program
+    NumberAnimation {
+        id: moveAnim
+        target: root; property: "moveP"; from: 1; to: 0
+        duration: root.cfg.animationDuration; easing.type: Easing.InOutCubic
+        onFinished: root.finishMove()
+    }
+    function finishMove() {
+        moveAnim.stop();
+        moveActive = false;
+        moveSet.forEach(h => { h.moveBy = 0; h.travels = false; h.unshift(); });
+        moveSet = [];
+        moveByOther = false;
+        settleTasks();
+        moveBusy = false;
+    }
+    // Where every icon of a row stands, for after the row has been changed.
+    function placesOf(list) {
+        var found = [];
+        taskHiders.forEach(e => {
+            if (!e.item || e.item.parent !== list || !e.hider.task || !e.item.visible) return;
+            found.push({hider: e.hider, at: vertical ? e.item.y : e.item.x});
+        });
+        return found;
+    }
+    // The row has been changed: every icon that stands somewhere else now comes from where
+    // it stood. The few that go far are the ones that travel; the many that go one place
+    // are the ones they pass.
+    function runMove(before) {
+        polishTasks();
+        var moved = [];
+        before.forEach(b => {
+            var h = b.hider;
+            if (!h.task || !h.task.visible) return;
+            var by = b.at - (vertical ? h.task.y : h.task.x);
+            if (Math.abs(by) > 0.5) moved.push({hider: h, by: by});
+        });
+        var up = moved.filter(m => m.by > 0), down = moved.filter(m => m.by < 0);
+        var far = up.length < down.length ? up : (down.length < up.length ? down
+            : moved.filter(m => m.hider.task.model && m.hider.task.model.IsLauncher !== true));
+        if (!moved.length || cfg.animationDuration <= 0) { finishMove(); return; }
+        moved.forEach(m => { m.hider.travels = far.indexOf(m) >= 0; m.hider.moveBy = m.by; });
+        moveSet = moved.map(m => m.hider);
+        moveP = 1;
+        moveActive = true;
+        moveAnim.restart();
+    }
     NumberAnimation {
         id: slideAnim
         target: root; property: "slideP"
@@ -1757,6 +1834,17 @@ PlasmoidItem {
         // one number on one window, so only one program may set it: with true here, another
         // one (Modish's zoom mod, whose grown icons need room under a preview) keeps off.
         readonly property bool popupDistance: root.cfg.taskGap && !root.cfg.paused && !root.leaving
+        // An icon changing place in the row (a program opened or closed): "rearranging" while
+        // it lasts, "rearranged" going from 0 to 1 in every frame of it, and shiftOf(item) for
+        // how far the drawer has that icon away from where the panel laid it out, right now.
+        // The drawer draws that itself, unless a link in the panel says "placesIcons".
+        readonly property bool rearranging: root.moveActive
+        readonly property real rearranged: root.moveActive ? 1 - root.moveP : 1
+        function shiftOf(item) {
+            if (!root.moveActive) return 0;
+            var found = root.moveSet.find(h => h.task === item);
+            return found ? found.movedNow : 0;
+        }
     }
     property string linkState: "open"
     property real linkProgress: 1
@@ -1922,7 +2010,17 @@ PlasmoidItem {
             property bool sliding: false
             property real shift: 0
             property var mover: null   // the icon's own "translate", which draws it shifted
-            readonly property real seen: (root.slideActive && sliding) ? Math.min(1, root.slideP * 1.5) : factor
+            // Changing place in the row, see runMove(): how far from its new place it starts,
+            // and whether it is the one that travels. Fading over: it stays on the old spot
+            // while it fades out, and comes up on the new one.
+            property real moveBy: 0
+            property bool travels: false
+            readonly property bool fadesOver: travels && root.cfg.moveStyle === "fade"
+            readonly property real movedNow: !root.moveActive || moveBy === 0 ? 0
+                : (fadesOver ? (root.moveP > 0.5 ? moveBy : 0) : moveBy * root.moveP)
+            readonly property real moveSeen: (root.moveActive && fadesOver) ? Math.abs(2 * root.moveP - 1) : 1
+            readonly property real seen: Math.min(moveSeen,
+                (root.slideActive && sliding) ? Math.min(1, root.slideP * 1.5) : factor)
 
             function measure() {
                 if (task && factor === 1 && !root.tasksMoving)
@@ -2071,9 +2169,24 @@ PlasmoidItem {
                 when: root.slideActive && th.shift !== 0
                 restoreMode: Binding.RestoreNone   // put back to zero by hand, see unshift()
             }
+            // The same "translate" while the icon changes place in the row, unless another
+            // program draws it there (it reads shiftOf() on the drawer's link).
+            property Binding b9: Binding {
+                target: th.mover
+                property: root.vertical ? "y" : "x"
+                value: th.movedNow
+                when: root.moveActive && th.moveBy !== 0 && !root.moveByOther
+                restoreMode: Binding.RestoreNone   // put back to zero by hand, see unshift()
+            }
+            // The one that glides goes over the icons it passes.
+            property Binding b10: Binding {
+                target: th.task; property: "z"; value: 50
+                when: root.moveActive && th.travels && !th.fadesOver
+                restoreMode: Binding.RestoreBindingOrValue
+            }
             function unshift() {
                 shift = 0;
-                if (mover) { mover.x = 0; mover.y = 0; }
+                if (mover && !root.moveByOther) { mover.x = 0; mover.y = 0; }
             }
             // The icon's room in the row. A hidden icon keeps no width either, because the task
             // manager adds up the widths of all its icons.
@@ -2111,6 +2224,7 @@ PlasmoidItem {
             property Binding b8: Binding {
                 target: th.task; property: "completed"; value: false
                 when: (root.tasksMoving && root.shrinks) || root.slideActive || root.slideBusy
+                      || root.moveBusy
                       || root.starting   // what stays simply stands in its place at once
                       || (!root.shrinks && th.holding)
                 restoreMode: Binding.RestoreBindingOrValue
@@ -2248,10 +2362,31 @@ PlasmoidItem {
                 var model = tm.tasksModel;
                 if (!ordering || !model || dragging || root.popupMoving) return;
                 var row, spot, first = 0, count = 0;
+                // The whole change of places as one movement, see runMove(). Not while the
+                // drawer itself opens or closes, and not when another program moves the icons
+                // without telling that it also puts them in their place.
+                var list = null, who = root.iconPlacers();
+                try { list = tm.applet.taskList; } catch (e) {}
+                var shown = list !== null && who !== "unknown" && !root.starting && !root.leaving
+                    && !root.slideActive && !root.slideBusy && root.tasksMovingCount === 0;
+                var before = [], started = false;
+                // Only once something really changes place: the row is looked at often, and a
+                // movement that is under way must not be cut short for nothing.
+                var move = (from, to) => {
+                    if (shown && !started) {
+                        if (root.moveActive) root.finishMove();
+                        root.syncTaskHiders();
+                        before = root.placesOf(list);
+                        root.moveByOther = who === "other";
+                        root.moveBusy = true;
+                        started = true;
+                    }
+                    model.move(from, to);
+                };
                 if (root.cfg.activePlace === "start") {
                     for (row = 0, spot = 0; row < model.count; row++) {
                         if (!isOpen(model, row)) continue;
-                        if (row !== spot) model.move(row, spot);
+                        if (row !== spot) move(row, spot);
                         spot++;
                     }
                     first = spot;
@@ -2259,7 +2394,7 @@ PlasmoidItem {
                 } else {
                     for (row = model.count - 1, spot = model.count - 1; row >= 0; row--) {
                         if (!isOpen(model, row)) continue;
-                        if (row !== spot) model.move(row, spot);
+                        if (row !== spot) move(row, spot);
                         spot--;
                     }
                     count = spot + 1;
@@ -2271,8 +2406,9 @@ PlasmoidItem {
                         var place = pinPlace(model, row);
                         if (place >= 0 && (least < 0 || place < least)) { best = row; least = place; }
                     }
-                    if (best !== spot) model.move(best, spot);
+                    if (best !== spot) move(best, spot);
                 }
+                if (started) root.runMove(before);
             }
             property Timer arrange: Timer { interval: 60; onTriggered: tm.arrangeOpen() }
             property Connections pins: Connections {

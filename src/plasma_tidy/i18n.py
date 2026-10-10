@@ -158,6 +158,11 @@ TRANSLATIONS = {
         "On their pinned spot": "Op hun vaste plek",
         "All in front": "Allemaal vooraan",
         "All at the back": "Allemaal achteraan",
+        "It goes there:": "Het gaat daarheen:",
+        "Gliding": "Glijdend",
+        "Fading over": "Overvloeiend",
+        "How a program that opens goes to the open programs, and back when it closes. Gliding: it slides there on top of the icons it passes. Fading over: it fades out on its old spot and comes up on the new one. The icons it passes glide a place over either way.":
+            "Hoe een programma dat opent naar de open programma's gaat, en terug als het sluit. Glijdend: het schuift erheen, over de pictogrammen waar het langs komt. Overvloeiend: het vervaagt op de oude plek en komt op de nieuwe tevoorschijn. De pictogrammen waar het langs komt schuiven in beide gevallen een plek op.",
         "A pinned program that is open normally stays on its pinned spot, between the others. "
         "In front or at the back, the open programs stand together and the pinned ones slide "
         "out next to them.":
