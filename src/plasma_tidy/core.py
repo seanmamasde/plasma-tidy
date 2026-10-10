@@ -1394,6 +1394,36 @@ class Tidy(QObject):
         if not names:
             self.profiles_menu.addAction(tr("None yet: save one in the settings")).setEnabled(False)
 
+    def export_data(self):
+        """Every choice as one piece of data: what Export writes, and what another program
+        gets that keeps Tidy's settings along with a desktop. Nothing of the moment: in focus
+        mode the system tray is told as it was before, not as focus mode has it."""
+        data = dict(self.snapshot(), profiles=self.profiles(), rules=self.rules(),
+                    rules_else=self.settings.value("rules_else", ""))
+        if self.focus:
+            held = stored(self.settings, "focus_state").get("tray")
+            if isinstance(held, dict):
+                data["tray"] = held
+        return data
+
+    def import_text(self, text):
+        """Take in what export_data gave, as text. Empty when done, else in words why not."""
+        try:
+            data = json.loads(text)
+        except (ValueError, TypeError):
+            return "This is not valid JSON."
+        if not isinstance(data, dict) or data.get("app") != APP:
+            return "These are not Tidy settings."
+        if self.dialog and self.dialog.changed:
+            return "Tidy's settings window is open with changes that are not applied yet."
+        # The drawers and the tray are Plasma's to hold: without Plasma they would be skipped
+        # without a word, and only half would have come in.
+        self.plasma_version()
+        if not self.plasma.reached:
+            return "Plasma does not answer at the moment. Try again in a few seconds."
+        self.import_snapshot(data)
+        return ""
+
     def import_snapshot(self, data):
         found = self.profiles()
         if isinstance(data.get("profiles"), dict):

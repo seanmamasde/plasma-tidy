@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Tidy's commands on D-Bus: for shortcuts, the helpers and a second invocation."""
 
+import json
+
 from PyQt6.QtCore import QTimer, pyqtClassInfo, pyqtSignal, pyqtSlot
 from PyQt6.QtDBus import QDBusAbstractAdaptor
 
@@ -76,6 +78,16 @@ class DBusAdaptor(QDBusAbstractAdaptor):
     @pyqtSlot(str)
     def KWinCheck(self, found):
         self.autohide.on_check("kwin", "", found)
+
+    # For a program that keeps Tidy's settings along with a desktop (Modish): every choice as
+    # one piece of JSON, what Export in the settings window writes, and the way back in.
+    @pyqtSlot(result=str)
+    def ExportSettings(self):
+        return json.dumps(self.autohide.export_data(), ensure_ascii=False)
+
+    @pyqtSlot(str, result=str)
+    def ImportSettings(self, text):
+        return self.autohide.import_text(text)
 
     @pyqtSlot(result=str)
     def Check(self):

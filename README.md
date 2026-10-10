@@ -326,6 +326,11 @@ drawers that are in your panel; it does not add or remove drawers.
 instance on another computer. *Defaults…* puts every setting back to how Tidy comes: your
 drawers stay, with what is in them, and the system tray is left alone.
 
+Another program can ask for the same over Tidy's name on the session bus
+(`io.github.wispware.PlasmaTidy`, object `/`): `ExportSettings` gives everything as one piece
+of JSON and `ImportSettings` takes it back in, answering with nothing when done or with the
+reason why not. Modish uses that to keep Tidy's settings along with a saved desktop.
+
 *Restore everything* is on this tab too.
 
 ### Rules

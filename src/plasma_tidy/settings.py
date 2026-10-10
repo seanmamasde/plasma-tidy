@@ -713,9 +713,7 @@ class SettingsDialog(QDialog):
         if not name:
             return
         self.autohide.apply_settings(self)
-        data = dict(self.autohide.snapshot(), profiles=self.autohide.profiles(),
-                    rules=self.autohide.rules(),
-                    rules_else=self.autohide.settings.value("rules_else", ""))
+        data = self.autohide.export_data()
         try:
             with open(name, "w") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)

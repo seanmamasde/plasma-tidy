@@ -22,6 +22,8 @@
   field empty for any program.
 - A drawer that slides and is turned round halfway goes back from where it is. (It used to jump
   to the end first and start again.)
+- For other programs: `ExportSettings` and `ImportSettings` on Tidy's name on the session bus
+  give and take all settings as one piece of JSON, as *Export…* and *Import…* do with a file.
 - For other programs: a drawer makes known how far open it is, under the name `wispwareLink`
   on its widget (state, progress, duration, its icons and the room they take). Modish's centre
   mod follows it. Without such a program nothing changes.
