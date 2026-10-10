@@ -2753,11 +2753,13 @@ PlasmoidItem {
             }
             readonly property bool inside: {
                 if (!handler || !handler.hovered || !item) return false;
-                var pos = (root.vertical ? handler.point.position.y : handler.point.position.x)
-                          - root.shiftedBy(item);   // drawn elsewhere by another program
+                // The handler sits on the widget itself: its place is counted from the widget as
+                // it is drawn, also when another program draws it somewhere else. No shiftedBy
+                // here: that is only for a place taken from the panel's layout.
+                var pos = root.vertical ? handler.point.position.y : handler.point.position.x;
                 var full = root.vertical ? item.height : item.width;
                 var mirrored = !root.vertical && Qt.application.layoutDirection === Qt.RightToLeft;
-                return mirrored ? pos >= full - extent && pos <= full : pos >= 0 && pos <= extent;
+                return mirrored ? pos >= full - extent : pos <= extent;
             }
             onInsideChanged: root.updateItemsHovered()
             Component.onCompleted: if (item) handler = hoverComponent.createObject(item)
