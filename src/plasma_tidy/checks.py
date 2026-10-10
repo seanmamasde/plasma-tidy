@@ -16,6 +16,7 @@ DRAWER_PARTS = {
     "tray": "the system tray in a drawer",
     "popup": "only the preview in a program's pop-up",
     "gap": "pop-ups and balloons floating above the panel",
+    "link": "knowing where another program (Modish) has moved a widget",
 }
 HELPER_PARTS = {
     "icons": "the desktop helper",

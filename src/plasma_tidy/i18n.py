@@ -482,6 +482,8 @@ TRANSLATIONS = {
         "the system tray in a drawer": "het systeemvak in een la",
         "only the preview in a program's pop-up": "alleen het voorbeeld in de pop-up van een programma",
         "pop-ups and balloons floating above the panel": "pop-ups en ballonnen die boven het paneel zweven",
+        "knowing where another program (Modish) has moved a widget":
+            "weten waarheen een ander programma (Modish) een widget heeft verschoven",
         "the desktop helper": "de bureaubladhelper",
         "hiding the widgets on the desktop": "de widgets op het bureaublad verbergen",
         "the double-click on the desktop": "de dubbelklik op het bureaublad",

@@ -22,6 +22,10 @@
 - For other programs: a drawer makes known how far open it is, under the name `wispwareLink`
   on its widget (state, progress, duration, its icons and the room they take). Modish's centre
   mod follows it. Without such a program nothing changes.
+- A drawer that opens or closes with a click on an empty spot of the panel knows where the
+  widgets really are when another program draws them somewhere else (Modish's centre mod puts
+  the programs and the start button in the middle): a click on a program there no longer
+  counts as a click on an empty spot.
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

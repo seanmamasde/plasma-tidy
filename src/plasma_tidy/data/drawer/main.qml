@@ -823,7 +823,8 @@ PlasmoidItem {
             })),
             tray: !trays.length ? "unused" : has(trays.every(s => s.tray !== null)),
             popup: !cfg.taskBare ? "unused" : (trimSeen || "not yet seen"),
-            gap: !gapWanted ? "unused" : (tipWindow ? "ok" : "not yet seen")
+            gap: !gapWanted ? "unused" : (tipWindow ? "ok" : "not yet seen"),
+            link: (shiftedBy(container), linkOthers)
         };
         var text = JSON.stringify(found);
         if (text === lastCheck || !tidyLink || !tidyLink.runs) return;
@@ -833,7 +834,7 @@ PlasmoidItem {
     // Looked at a while after anything it depends on changed (the system tray, for one,
     // builds its inside late), and never on a clock.
     readonly property string checkKey: [container !== null, taskManagers.length, wholeTargets.length,
-        siblings.length, cfg.taskBare, gapWanted, tipWindow !== null, trimSeen].join("/")
+        siblings.length, cfg.taskBare, gapWanted, tipWindow !== null, trimSeen, linkOthers].join("/")
     onCheckKeyChanged: checkTimer.restart()
     Timer { id: checkTimer; interval: 6000; onTriggered: root.selfCheck() }
 
@@ -1001,7 +1002,8 @@ PlasmoidItem {
         // The side of the neighbour that the arrow would touch.
         var far = beside.after === mirrored;
         var place = vertical ? (far ? k.y + k.height : k.y) : (far ? k.x + k.width : k.x);
-        return place - (vertical ? container.y : container.x);
+        // both as they are drawn, should another program have moved them
+        return place + shiftedBy(k) - (vertical ? container.y : container.x) - shiftedBy(container);
     }
     // What the pop-up stands above, along the panel: the arrow. An arrow without room has no
     // place to show for itself, so there it is the widget beside it, or for a task manager
@@ -1035,6 +1037,8 @@ PlasmoidItem {
             // A widget that fills the panel is mostly empty: only its contents count.
             var extent = contentExtent(k);
             if (first) to = from + extent; else from = to - extent;
+            var moved = shiftedBy(k);   // drawn elsewhere by another program
+            from += moved; to += moved;
         }
         var origin = along(root.mapToItem(layout, 0, 0)) + away;
         return {from: from - origin, to: to - origin};
@@ -2647,7 +2651,7 @@ PlasmoidItem {
             if (!k || !k.applet || !k.visible || k.opacity === 0) return false;
             var start = vertical ? k.y : k.x, full = vertical ? k.height : k.width;
             var extent = contentExtent(k);
-            var from = mirrored ? start + full - extent : start;
+            var from = (mirrored ? start + full - extent : start) + shiftedBy(k);
             return pos >= from && pos <= from + extent;
         });
     }
@@ -2665,6 +2669,30 @@ PlasmoidItem {
             closeAfterPopup = false;
             if (!cfg.paused) cfg.closed = true;
         }
+    }
+    // Where a widget is on screen need not be where the panel laid it out: another program
+    // may draw it somewhere else and say by how much (Modish's centre mod keeps the programs
+    // and the start button in the middle that way). The agreement, docs/tidy-link.md in
+    // Modish's repository: the place is where the panel put it, plus shiftOf(item) of every
+    // "wispwareLink" in the same panel that has one. Without such a program this is 0.
+    readonly property int linkKnown: 1    // the version of the agreement this drawer knows
+    property string linkOthers: "unused"  // for the look at itself: none, understood, or too new
+    function shiftedBy(item) {
+        if (!item || !container || !container.parent) return 0;
+        var kids = container.parent.children, by = 0, seen = "unused";
+        for (var i = 0; i < kids.length; i++) {
+            var k = kids[i];
+            if (!k || k === container || !k.isAppletContainer || !k.applet) continue;
+            try {
+                var link = k.applet.wispwareLink;
+                if (!link || typeof link.shiftOf !== "function") continue;
+                if (link.version > linkKnown) { seen = "missing"; continue; }   // newer than we know: left alone
+                if (seen === "unused") seen = "ok";
+                by += Number(link.shiftOf(item)) || 0;
+            } catch (e) {}
+        }
+        if (seen !== linkOthers) linkOthers = seen;
+        return by;
     }
     function contentExtent(k) {
         var full = vertical ? k.height : k.width;
@@ -2687,7 +2715,7 @@ PlasmoidItem {
                 continue;
             var start = vertical ? k.y : k.x, full = vertical ? k.height : k.width;
             var extent = contentExtent(k);
-            var from = mirrored ? start + full - extent : start;
+            var from = (mirrored ? start + full - extent : start) + shiftedBy(k);
             if (pos >= from && pos <= from + extent) return false;
         }
         return true;
@@ -2725,10 +2753,11 @@ PlasmoidItem {
             }
             readonly property bool inside: {
                 if (!handler || !handler.hovered || !item) return false;
-                var pos = root.vertical ? handler.point.position.y : handler.point.position.x;
+                var pos = (root.vertical ? handler.point.position.y : handler.point.position.x)
+                          - root.shiftedBy(item);   // drawn elsewhere by another program
                 var full = root.vertical ? item.height : item.width;
                 var mirrored = !root.vertical && Qt.application.layoutDirection === Qt.RightToLeft;
-                return mirrored ? pos >= full - extent : pos <= extent;
+                return mirrored ? pos >= full - extent && pos <= full : pos >= 0 && pos <= extent;
             }
             onInsideChanged: root.updateItemsHovered()
             Component.onCompleted: if (item) handler = hoverComponent.createObject(item)
