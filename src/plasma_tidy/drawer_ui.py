@@ -229,6 +229,15 @@ class DrawerPage(QWidget):
         self.after_use = QCheckBox(tr("Close after a click on something in the drawer"))
         self.after_use.setChecked(config["closeAfterUse"])
         form.addRow(self.after_use)
+        self.after_use.toggled.connect(self.update_enabled)
+        self.use_delay = QDoubleSpinBox(suffix=" s", minimum=0, maximum=60, singleStep=0.5,
+                                        decimals=1)
+        self.use_delay.setValue(config["useDelay"] / 1000)
+        self.use_delay.setToolTip(tr(
+            "After a click on a program in the drawer the drawer stays this long before it "
+            "closes, so you see where the program went. With the programs in the middle of "
+            "the panel a longer time is calmer."))
+        form.addRow(tr("Stays open after that click:"), self.use_delay)
 
         self.keep_panel = QDoubleSpinBox(suffix=" s", minimum=0, maximum=60, singleStep=0.5,
                                          decimals=1)
@@ -441,6 +450,7 @@ class DrawerPage(QWidget):
             box.setEnabled(not self.fit)
         self.hover_delay.setEnabled(self.open_on.currentData() == OPEN_HOVER)
         self.close_delay.setEnabled(bool(self.auto_close.currentData()))
+        self.use_delay.setEnabled(self.after_use.isChecked())
         custom = self.icon.currentData() == "custom"
         self.icon_custom.setEnabled(custom)
         self.icon_choose.setEnabled(custom)
@@ -475,6 +485,7 @@ class DrawerPage(QWidget):
                 "closeOnPanelClick": self.panel_click.isChecked(),
                 "openOnPanelClick": self.panel_open.isChecked(),
                 "closeAfterUse": self.after_use.isChecked(),
+                "useDelay": round(self.use_delay.value() * 1000),
                 "closeOnPanelHide": self.on_panel_hide.isChecked(),
                 "closeOnMaximized": self.on_maximized.isChecked(),
                 "icon": self.icon.currentData(),

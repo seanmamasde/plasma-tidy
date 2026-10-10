@@ -29,6 +29,7 @@ KCM.SimpleKCM {
     property bool cfg_closeOnPanelClick
     property bool cfg_openOnPanelClick
     property bool cfg_closeAfterUse
+    property int cfg_useDelay
     property bool cfg_closeOnPanelHide
     property bool cfg_closeOnMaximized
     property bool cfg_openOnDesktop
@@ -185,6 +186,15 @@ KCM.SimpleKCM {
             text: page.t("Close after a click on something in the drawer")
             checked: page.cfg_closeAfterUse
             onToggled: page.cfg_closeAfterUse = checked
+        }
+        QQC2.SpinBox {
+            Kirigami.FormData.label: page.t("Stays open after that click:")
+            enabled: page.cfg_closeAfterUse
+            from: 0; to: 600; stepSize: 5     // tenths of a second
+            value: Math.round(page.cfg_useDelay / 100)
+            textFromValue: value => (value / 10).toFixed(1) + " s"
+            valueFromText: text => Math.round((parseFloat(text.replace(",", ".")) || 0) * 10)
+            onValueModified: page.cfg_useDelay = value * 100
         }
         QQC2.SpinBox {
             Kirigami.FormData.label: page.t("Panel stays after starting a program:")

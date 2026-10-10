@@ -32,6 +32,8 @@
 - With Modish's zoom mod, the pointer on the part of a grown icon that sticks out of the panel
   counts as on that icon and in the panel: a drawer no longer closes by itself under it.
   A click there counts as a click on the icon: the drawer closes after use if that is set.
+- *Close after a click on something in the drawer* has a time you set: how long the drawer
+  stays open after that click (it was a fixed 0.4 s).
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

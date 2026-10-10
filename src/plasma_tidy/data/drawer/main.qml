@@ -2704,7 +2704,8 @@ PlasmoidItem {
     property bool closeAfterPopup: false
     Timer {
         id: useTimer
-        interval: 400
+        // How long the drawer stays after such a click: time to see where the program went.
+        interval: Math.max(0, root.cfg.useDelay)
         onTriggered: {
             if (root.popupOpen) root.closeAfterPopup = true;
             else if (!root.cfg.paused) root.cfg.closed = true;
