@@ -1225,7 +1225,10 @@ PlasmoidItem {
         function onBodyHeightChanged() { if (root.popupWanted) root.placeAnchor(); }
     }
 
-    onPointerHereChanged: if (pointerHere && popupWanted) popupVisited = true
+    onPointerHereChanged: {
+        if (pointerHere && popupWanted) popupVisited = true;
+        if (!pointerHere && usePending) useLeft.restart();
+    }
 
     // Start a program from the pop-up, or go to its window: asked of the task manager whose
     // icon it is, so it does exactly what a click in the panel does.
@@ -2857,8 +2860,11 @@ PlasmoidItem {
         }
         if (cfg.closeOnPanelClick && empty && !opening)
             Qt.callLater(() => { root.cfg.closed = true; });
-        else if (cfg.closeAfterUse && inDrawerItem(pos))
+        else if (cfg.closeAfterUse && inDrawerItem(pos)) {
+            useAt = pointerAlong();
+            usePending = false;
             useTimer.restart();
+        }
     }
     // A click on the part of a grown icon that sticks out of the panel never comes by the
     // panel: the program that lets it grow passes it on to the icon and tells of it with
@@ -2871,7 +2877,11 @@ PlasmoidItem {
         while (c && !c.isAppletContainer && hops < 12) { c = c.parent; hops++; }
         if (!c || c.isAppletContainer !== true || !drawerItems.some(s => s.item === c)) return;
         keepPanel(cfg.keepPanel);
-        if (cfg.closeAfterUse) useTimer.restart();
+        if (cfg.closeAfterUse) {
+            useAt = NaN;   // on a part outside the panel: where the pointer is, is not known
+            usePending = false;
+            useTimer.restart();
+        }
     }
     Instantiator {
         model: root.growers
@@ -2902,8 +2912,43 @@ PlasmoidItem {
         interval: Math.max(0, root.cfg.useDelay)
         onTriggered: {
             if (root.popupOpen) root.closeAfterPopup = true;
+            // Gone on to something else in the drawer since the click: not closed under the
+            // pointer, but once it leaves. (With the pointer still where it clicked, it closes.)
+            else if (root.pointerHere && root.movedSinceUse()) root.usePending = true;
             else if (!root.cfg.paused) root.cfg.closed = true;
         }
+    }
+    // Where the pointer was at that click and where it is now, along the panel, as far as
+    // the widgets of the drawer tell. Unknown counts as not moved.
+    property real useAt: NaN
+    property bool usePending: false
+    function pointerAlong() {
+        for (var i = 0; i < watchers.count; i++) {
+            var w = watchers.objectAt(i);
+            try {
+                if (w && w.handler && w.handler.hovered)
+                    return vertical ? w.handler.point.scenePosition.y : w.handler.point.scenePosition.x;
+            } catch (e) {}
+        }
+        return NaN;
+    }
+    function movedSinceUse() {
+        var now = pointerAlong();
+        return !isNaN(useAt) && !isNaN(now) && Math.abs(now - useAt) > Kirigami.Units.gridUnit;
+    }
+    Timer {
+        id: useLeft
+        interval: 400
+        onTriggered: {
+            if (!root.usePending) return;
+            if (root.pointerHere) return;          // came back: waits for the next leaving
+            root.usePending = false;
+            if (!root.cfg.paused) root.cfg.closed = true;
+        }
+    }
+    Connections {
+        target: root.cfg
+        function onClosedChanged() { if (root.cfg.closed) root.usePending = false; }
     }
     onPopupOpenChanged: {
         if (!popupOpen && closeAfterPopup) {

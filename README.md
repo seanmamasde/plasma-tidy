@@ -191,7 +191,7 @@ The settings of a drawer come in three parts.
 | Closes after | How long after the pointer left | 2 s |
 | Close with a click on an empty spot in the panel | A left click where the panel is empty closes the drawer; a click on a widget does what it always did | off |
 | Close after a click on something in the drawer | Closes once you have started or picked something; a pop-up it opened is waited for | off |
-| Stays open after that click | How long the drawer stays before it closes after such a click, so you see where the program went | 0.4 s |
+| Stays open after that click | How long the drawer stays before it closes after such a click, so you see where the program went. If you have gone on to something else in the drawer by then, it stays until the pointer leaves | 0.4 s |
 | Panel stays after starting a program | A panel that hides itself or dodges windows goes the moment the window of a program you start from the drawer opens. With a time here it stays that long, so you can go on in the panel | 0 s (it goes at once) |
 | Close when a window that fills the screen comes to the front | Closes each time a maximized or full-screen window becomes the active one | off |
 | Close when the panel slides out of view | When the panel hides (auto-hide, dodging a window, or hidden together with the desktop icons) the drawer closes, so the panel comes back tidy. It does not open again by itself. Tidy tells the drawer, so Tidy has to be running | on |
