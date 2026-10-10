@@ -26,6 +26,9 @@
   widgets really are when another program draws them somewhere else (Modish's centre mod puts
   the programs and the start button in the middle): a click on a program there no longer
   counts as a click on an empty spot.
+- With Modish's zoom mod in the panel, the pop-up of a program stands clear of the grown icons
+  when *This pop-up floats above the panel* is on. The drawer says that it sets that distance,
+  so the two do not both set it.
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

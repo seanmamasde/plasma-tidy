@@ -695,6 +695,21 @@ PlasmoidItem {
         found.forEach(a => { try { a.toolTipVisibleChanged.connect(root.tipLearn); } catch (e) {} });
         tipAreas = found;
     }
+    // How far another program's icons reach out of the panel at their biggest (Modish's zoom
+    // mod makes that known as "reach"): a preview has to stand clear of them.
+    function grownReach() {
+        if (!container || !container.parent) return 0;
+        var kids = container.parent.children, most = 0;
+        for (var i = 0; i < kids.length; i++) {
+            try {
+                var link = kids[i].applet.wispwareLink;
+                if (link && link.kind === "modish.zoom" && link.version <= linkKnown)
+                    most += Math.max(0, Number(link.reach) || 0);
+            } catch (e) {}
+        }
+        return Math.round(most);
+    }
+    property real tipSet: 0           // the distance this drawer put on the window last
     function tipApply() {
         try {
             if (!tipWindow) return;
@@ -703,14 +718,18 @@ PlasmoidItem {
                 mine = at.Window.window === root.Window.window;
                 task = at.inPopup !== undefined && at.smartLauncherItem !== undefined;
             }
-            var gap = (mine && !cfg.paused && !leaving && (task ? cfg.taskGap : cfg.tipGap)) ? tipGap() : 0;
+            var wanted = mine && !cfg.paused && !leaving && (task ? cfg.taskGap : cfg.tipGap);
+            // A program's pop-up also stands clear of icons that another program lets grow.
+            var gap = wanted ? tipGap() + (task ? grownReach() : 0) : 0;
             if (gap > 0) {
                 tipMine = true;
+                tipSet = gap;
                 if (tipWindow.margin !== gap) tipWindow.margin = gap;
             } else if (tipMine) {
-                // Only what this drawer set itself is taken away.
+                // Only what this drawer set itself is taken away: when another program has
+                // put its own distance there meanwhile, that stays.
                 tipMine = false;
-                if (tipWindow.margin !== 0) tipWindow.margin = 0;
+                if (tipWindow.margin === tipSet) tipWindow.margin = 0;
             }
         } catch (e) {}
     }
@@ -1734,6 +1753,10 @@ PlasmoidItem {
         readonly property var tasks: root.linkTasks           // the task manager's own icon items
         readonly property real room: root.linkRoom            // what they take in the open row
         readonly property real before: root.linkBefore        // of that: before the first other icon
+        // Does this drawer set how far the pop-ups of program icons stand from the panel? It is
+        // one number on one window, so only one program may set it: with true here, another
+        // one (Modish's zoom mod, whose grown icons need room under a preview) keeps off.
+        readonly property bool popupDistance: root.cfg.taskGap && !root.cfg.paused && !root.leaving
     }
     property string linkState: "open"
     property real linkProgress: 1
