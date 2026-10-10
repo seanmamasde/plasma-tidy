@@ -29,6 +29,8 @@
 - With Modish's zoom mod in the panel, the pop-up of a program stands clear of the grown icons
   when *This pop-up floats above the panel* is on. The drawer says that it sets that distance,
   so the two do not both set it.
+- With Modish's zoom mod, the pointer on the part of a grown icon that sticks out of the panel
+  counts as on that icon and in the panel: a drawer no longer closes by itself under it.
 - A folder you add to a drawer sorts its contents by name, folders first. (Folders that are
   in the panel already stay as they are.)
 - A settings button next to each folder in a drawer's *In this drawer* list opens that

@@ -136,7 +136,7 @@ PlasmoidItem {
         if (!same(whole, wholeTargets)) wholeTargets = whole;
         if (!same(tasks, taskManagers)) taskManagers = tasks;
     }
-    onSiblingsChanged: listTargets()
+    onSiblingsChanged: { listTargets(); findGrowers(); }
     Connections {
         target: root.cfg
         function onTargetsChanged() { root.listTargets(); }
@@ -508,7 +508,7 @@ PlasmoidItem {
         onTriggered: {
             try {
                 var th = root.tipWaiting;
-                if (!th || !th.task.containsMouse) return;
+                if (!th || !th.pointed) return;
                 th.task.showToolTip();
                 th.tipShown = true;
             } catch (e) {}
@@ -1994,22 +1994,23 @@ PlasmoidItem {
             // drawer asks for it. Plasma still keeps track of the pointer, fills the pop-up
             // and takes it away again by itself.
             property bool tipShown: false
-            property Connections pointing: Connections {
-                target: (th.ready && !root.cfg.balloons && root.cfg.taskTips && !root.cfg.paused
-                         && !root.leaving) ? th.task : null
-                function onContainsMouseChanged() {
-                    if (th.task.containsMouse) {
-                        // From one icon to the next the pop-up follows at once, as Plasma does,
-                        // and coming back from the pop-up to its icon it simply stays.
-                        root.tipWaiting = th;
-                        tipTimer.interval = (root.tipUp() || Date.now() - root.tipLeft < 400)
-                            ? 1 : root.tipDelay;
-                        tipTimer.restart();
-                    } else {
-                        if (root.tipWaiting === th) tipTimer.stop();
-                        if (th.tipShown) root.tipLeft = Date.now();
-                        th.tipShown = false;
-                    }
+            // On this icon: it says so itself, or the pointer is on the part of it that another
+            // program lets reach out of the panel.
+            readonly property bool pointed: (th.ready && !root.cfg.balloons && root.cfg.taskTips
+                                             && !root.cfg.paused && !root.leaving && th.task !== null)
+                ? (th.task.containsMouse === true || root.heldOn === th.task) : false
+            onPointedChanged: {
+                if (pointed) {
+                    // From one icon to the next the pop-up follows at once, as Plasma does,
+                    // and coming back from the pop-up to its icon it simply stays.
+                    root.tipWaiting = th;
+                    tipTimer.interval = (root.tipUp() || Date.now() - root.tipLeft < 400)
+                        ? 1 : root.tipDelay;
+                    tipTimer.restart();
+                } else {
+                    if (root.tipWaiting === th) tipTimer.stop();
+                    if (th.tipShown) root.tipLeft = Date.now();
+                    th.tipShown = false;
                 }
             }
             // Must let go of the icon before it goes: the bindings only restore while they exist.
@@ -2698,6 +2699,39 @@ PlasmoidItem {
     // and the start button in the middle that way). The agreement, docs/tidy-link.md in
     // Modish's repository: the place is where the panel put it, plus shiftOf(item) of every
     // "wispwareLink" in the same panel that has one. Without such a program this is 0.
+    // An icon that another program lets grow reaches out of the panel, and the pointer on that
+    // part is on a window of that program: the panel and the icon then say "not on me".
+    // Modish's zoom mod says so itself ("pointerHeld", and "pointerOn" for the icon). The rule
+    // of the agreement: the pointer is in the panel when the panel says so or such a link
+    // holds it, and on an icon when the icon says so or the link names that icon.
+    property var growers: []          // the "modish.zoom" links in this panel
+    function findGrowers() {
+        var found = [];
+        if (container && container.parent) {
+            var kids = container.parent.children;
+            for (var i = 0; i < kids.length; i++) {
+                try {
+                    var link = kids[i].applet.wispwareLink;
+                    if (link && link.kind === "modish.zoom" && link.version <= linkKnown) found.push(link);
+                } catch (e) {}
+            }
+        }
+        if (found.length !== growers.length || found.some((l, n) => l !== growers[n])) growers = found;
+    }
+    readonly property bool heldInPanel: growers.some(l => { try { return l.pointerHeld === true; } catch (e) { return false; } })
+    readonly property var heldOn: {
+        for (var i = 0; i < growers.length; i++) {
+            try { if (growers[i].pointerHeld === true && growers[i].pointerOn) return growers[i].pointerOn; } catch (e) {}
+        }
+        return null;
+    }
+    // Is that icon in a widget of this drawer? Then the pointer is in the drawer, as it is
+    // when it stands on the same icon inside the panel.
+    readonly property bool heldInDrawer: {
+        var c = heldOn, hops = 0;
+        while (c && !c.isAppletContainer && hops < 12) { c = c.parent; hops++; }
+        return !!c && c.isAppletContainer === true && drawerItems.some(s => s.item === c);
+    }
     readonly property int linkKnown: 1    // the version of the agreement this drawer knows
     property string linkOthers: "unused"  // for the look at itself: none, understood, or too new
     function shiftedBy(item) {
@@ -2744,6 +2778,7 @@ PlasmoidItem {
         return true;
     }
     readonly property bool pointerInPanel: (panelHover ? panelHover.hovered : false) || arrowHovered
+                                           || heldInPanel
 
     readonly property var drawerItems: siblings.filter(s => inTargets(s.id))
     property bool itemsHovered: false
@@ -2789,7 +2824,7 @@ PlasmoidItem {
             Component.onDestruction: { try { if (handler) handler.destroy(); } catch (e) {} }
         }
     }
-    readonly property bool pointerInDrawer: arrowHovered || itemsHovered || popupHovered
+    readonly property bool pointerInDrawer: arrowHovered || itemsHovered || heldInDrawer || popupHovered
     readonly property bool pointerHere: cfg.closeScope === "panel" ? (pointerInPanel || popupHovered)
                                                                    : pointerInDrawer
     function hasPopupOpen(applet) {
