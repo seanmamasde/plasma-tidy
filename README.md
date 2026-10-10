@@ -185,12 +185,12 @@ The settings of a drawer come in three parts.
 | Pointing opens after | How long the pointer must rest on the arrow | 200 ms |
 | Shortcut | A key for this drawer alone | none |
 | Open when a program asks for attention | A hidden program that wants you opens the drawer | on |
-| Open with a click on an empty spot in the panel | A left click where the panel is empty opens the drawer. As long as a drawer that opens this way is closed, the click only opens; it closes when all of them are open | off |
+| Open with a click on an empty spot in the panel | A click where the panel is empty opens the drawer. As long as a drawer that opens with the same click is closed, the click only opens; it closes when all of them are open | off |
 | That click is | Which click on an empty spot opens the drawer, and closes it if that is ticked: the left button, the middle button, or a left click with Ctrl, Shift or Alt held. Drawers with a different click each open on their own; drawers with the same click go together | left click |
 | Open when the desktop is shown | Opens when you go to the desktop; needs Tidy running | off |
 | Close by itself | Never, when the pointer leaves the drawer (the arrow and the items it shows), or when it leaves the panel | never |
 | Closes after | How long after the pointer left | 2 s |
-| Close with a click on an empty spot in the panel | A left click where the panel is empty closes the drawer; a click on a widget does what it always did | off |
+| Close with a click on an empty spot in the panel | The same click where the panel is empty closes the drawer; a click on a widget does what it always did | off |
 | Close after a click on something in the drawer | Closes once you have started or picked something; a pop-up it opened is waited for | off |
 | Stays open after that click | How long the drawer stays before it closes after such a click, so you see where the program went. It never closes under the pointer: with the pointer still in the drawer it waits, and closes once the pointer has left | 0.4 s |
 | Panel stays after starting a program | A panel that hides itself or dodges windows goes the moment the window of a program you start from the drawer opens. With a time here it stays that long, so you can go on in the panel | 0 s (it goes at once) |
