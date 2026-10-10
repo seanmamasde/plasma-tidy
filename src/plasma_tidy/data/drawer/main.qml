@@ -797,16 +797,47 @@ PlasmoidItem {
         return found;
     }
     function syncTaskHiders() {
-        var wanted = taskItems(), kept = [];
+        var wanted = taskItems(), kept = [], fresh = [];
         taskHiders.forEach(h => {
-            if (wanted.some(w => w.item === h.item)) kept.push(h);
-            else h.hider.destroy();   // lets go of the icon first, see release()
+            if (wanted.some(w => w.item === h.item)) { kept.push(h); return; }
+            // On its way to another place in the row (see runMove): whatever comes in its
+            // stead takes the journey over, from where this one was drawn.
+            var at = moveSet.indexOf(h.hider);
+            if (moveActive && at >= 0) {
+                moveOrphans.push({appId: h.hider.appId, home: h.hider.homeAt, by: h.hider.moveBy,
+                                  travels: h.hider.travels});
+                moveSet.splice(at, 1);
+                moveNote("gone", [h.hider.appId, Math.round(h.hider.homeAt), Math.round(h.hider.moveBy), moveP.toFixed(2)]);
+            }
+            h.hider.destroy();   // lets go of the icon first, see release()
         });
         wanted.forEach(w => {
-            if (!kept.some(h => h.item === w.item))
-                kept.push({item: w.item, applet: w.applet, hider: taskHiderComponent.createObject(
-                    root, {task: w.item, after: w.after})});
+            if (kept.some(h => h.item === w.item)) return;
+            var made = {item: w.item, applet: w.applet, hider: taskHiderComponent.createObject(
+                root, {task: w.item, after: w.after})};
+            kept.push(made);
+            fresh.push(made.hider);
         });
+        if (moveActive && fresh.length) moveNote("came", fresh.map(h => [h.appIdNow || h.appId, h.task ? Math.round(vertical ? h.task.y : h.task.x) : -1]));
+        if (moveActive && moveOrphans.length && fresh.length) {
+            fresh.forEach(h => {
+                // the same program, or else the only one that went for the only one that came
+                var id = h.appIdNow || h.appId;
+                var at = moveOrphans.findIndex(o => o.appId !== "" && o.appId === id);
+                if (at < 0 && moveOrphans.length === 1 && fresh.length === 1) at = 0;
+                if (at < 0 || !h.task) return;
+                var orphan = moveOrphans.splice(at, 1)[0];
+                // It comes in the same place in the row, so it is the same journey. (Where the
+                // panel has it cannot be asked yet: a new icon stands at the end of the row
+                // until the row is laid out again.)
+                h.homeAt = orphan.home;
+                h.travels = orphan.travels;
+                h.moveBy = orphan.by;
+                moveNote("taken over", [id, Math.round(h.homeAt), Math.round(h.moveBy), moveP.toFixed(2)]);
+                moveSet.push(h);
+            });
+            moveSet = moveSet.slice();   // tell who reads it
+        }
         taskHiders = kept;
         countOwn();
         listTasks.restart();
@@ -1637,6 +1668,11 @@ PlasmoidItem {
     property bool moveActive: false
     property bool moveBusy: false       // from before the row changes: no animation of the task manager's own
     property var moveSet: []            // the hiders of the icons that are on their way
+    property var moveOrphans: []        // journeys of icons that went meanwhile, see syncTaskHiders()
+    // For testing, with debug set to "move": what happens to the icons that change place.
+    function moveNote(what, data) {
+        if (cfg.debug === "move") console.warn("TIDYMOVE " + (Date.now() % 100000) + " " + what + " " + JSON.stringify(data));
+    }
     // Another program may be the one that puts the icons along the panel (Modish says so with
     // "placesIcons" on its link). Then the drawer only tells how far each icon is on its way,
     // with shiftOf() on its own link, and that program draws it there. A program that moves
@@ -1664,10 +1700,12 @@ PlasmoidItem {
         onFinished: root.finishMove()
     }
     function finishMove() {
+        if (moveActive) moveNote("finish", [moveP.toFixed(2), moveSet.length, moveOrphans.length]);
         moveAnim.stop();
         moveActive = false;
         moveSet.forEach(h => { h.moveBy = 0; h.travels = false; h.unshift(); });
         moveSet = [];
+        moveOrphans = [];
         moveByOther = false;
         settleTasks();
         moveBusy = false;
@@ -1677,7 +1715,8 @@ PlasmoidItem {
         var found = [];
         taskHiders.forEach(e => {
             if (!e.item || e.item.parent !== list || !e.hider.task || !e.item.visible) return;
-            found.push({hider: e.hider, at: vertical ? e.item.y : e.item.x});
+            // where it is drawn: on its way in an earlier move, that is not where the panel has it
+            found.push({hider: e.hider, at: (vertical ? e.item.y : e.item.x) + e.hider.movedAt()});
         });
         return found;
     }
@@ -1697,8 +1736,13 @@ PlasmoidItem {
         var far = up.length < down.length ? up : (down.length < up.length ? down
             : moved.filter(m => m.hider.task.model && m.hider.task.model.IsLauncher !== true));
         if (!moved.length || cfg.animationDuration <= 0) { finishMove(); return; }
-        moved.forEach(m => { m.hider.travels = far.indexOf(m) >= 0; m.hider.moveBy = m.by; });
+        moved.forEach(m => {
+            m.hider.travels = far.indexOf(m) >= 0;
+            m.hider.homeAt = vertical ? m.hider.task.y : m.hider.task.x;
+            m.hider.moveBy = m.by;
+        });
         moveSet = moved.map(m => m.hider);
+        moveNote("run", moved.map(m => [m.hider.appId, Math.round(m.hider.homeAt), Math.round(m.by), m.hider.travels]));
         moveP = 1;
         moveActive = true;
         moveAnim.restart();
@@ -1843,7 +1887,7 @@ PlasmoidItem {
         function shiftOf(item) {
             if (!root.moveActive) return 0;
             var found = root.moveSet.find(h => h.task === item);
-            return found ? found.movedNow : 0;
+            return found ? found.movedAt() : 0;
         }
     }
     property string linkState: "open"
@@ -2014,10 +2058,21 @@ PlasmoidItem {
             // and whether it is the one that travels. Fading over: it stays on the old spot
             // while it fades out, and comes up on the new one.
             property real moveBy: 0
+            property real homeAt: 0      // where the panel has it at the end of the journey
             property bool travels: false
             readonly property bool fadesOver: travels && root.cfg.moveStyle === "fade"
-            readonly property real movedNow: !root.moveActive || moveBy === 0 ? 0
-                : (fadesOver ? (root.moveP > 0.5 ? moveBy : 0) : moveBy * root.moveP)
+            // Asked straight, not through a binding: it has to be right in the very turn in
+            // which the move begins.
+            function movedAt() {
+                if (!root.moveActive || moveBy === 0) return 0;
+                return fadesOver ? (root.moveP > 0.5 ? moveBy : 0) : moveBy * root.moveP;
+            }
+            readonly property real movedNow: (root.moveActive, root.moveP, moveBy, fadesOver, movedAt())
+            // Which program this is, kept for when the icon itself has gone: the task manager
+            // puts a new icon in the place of the old one when a program's window comes.
+            property string appId: ""
+            readonly property string appIdNow: task && task.model ? String(task.model.AppId) : ""
+            onAppIdNowChanged: if (appIdNow !== "") appId = appIdNow
             readonly property real moveSeen: (root.moveActive && fadesOver) ? Math.abs(2 * root.moveP - 1) : 1
             readonly property real seen: Math.min(moveSeen,
                 (root.slideActive && sliding) ? Math.min(1, root.slideP * 1.5) : factor)
@@ -2249,7 +2304,9 @@ PlasmoidItem {
             property Connections icons: Connections {
                 target: tm.applet && tm.applet.taskList !== undefined ? tm.applet.taskList : null
                 function onChildrenChanged() {
-                    if (root.starting) root.syncTaskHiders(); else taskSync.restart();
+                    // At once while icons are on their way: one that comes in the place of
+                    // another has to take over where that one was, not a moment later.
+                    if (root.starting || root.moveActive) root.syncTaskHiders(); else taskSync.restart();
                 }
             }
             // Icons that slide out go out of sight at the edge of the row.
@@ -2374,9 +2431,10 @@ PlasmoidItem {
                 // movement that is under way must not be cut short for nothing.
                 var move = (from, to) => {
                     if (shown && !started) {
-                        if (root.moveActive) root.finishMove();
+                        // A move that is still under way goes on from where its icons are drawn.
                         root.syncTaskHiders();
                         before = root.placesOf(list);
+                        if (root.moveActive) root.finishMove();
                         root.moveByOther = who === "other";
                         root.moveBusy = true;
                         started = true;
