@@ -205,7 +205,8 @@ PlasmoidItem {
 
     // While the icons are away, a click on the desktop goes to this area and from there to
     // Tidy. It sits under the desktop's widgets and takes only the buttons you chose; any
-    // other click does what it always did (the right button: the desktop's menu).
+    // other click does what it always did. The right button is never kept from the desktop:
+    // it brings the icons back and opens the desktop's menu as well.
     Component {
         id: catcherComponent
         MouseArea {
@@ -215,6 +216,7 @@ PlasmoidItem {
             acceptedButtons: Number(root.wish.buttons) || Qt.NoButton
             onPressed: mouse => {
                 if (root.wish["double"] !== true) root.tell("DesktopClick", []);
+                if (mouse.button === Qt.RightButton) mouse.accepted = false;
             }
             onDoubleClicked: mouse => {
                 if (root.wish["double"] === true) root.tell("DesktopClick", []);

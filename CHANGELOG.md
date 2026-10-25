@@ -2,6 +2,8 @@
 
 ## 0.4.0 — not released yet
 
+- A right-click on the desktop while the icons are hidden opens the desktop's menu again.
+  With the right button among the ones that bring the icons back, it does both.
 - The Desktop tab of the settings is in four groups: when the icons hide, how they come back,
   what hides along, and how it is done.
 - One choice instead of two for how the icons come back: on any movement or key press, on a
