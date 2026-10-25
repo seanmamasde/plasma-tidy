@@ -1,6 +1,6 @@
 # Changes
 
-## 0.4.0 — not released yet
+## 0.4.0 — 2026-10-25
 
 - A right-click on the desktop while the icons are hidden opens the desktop's menu again.
   With the right button among the ones that bring the icons back, it does both.

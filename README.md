@@ -49,9 +49,9 @@ The same drawer as a pop-up above the panel:
 
 ![A pop-up drawer above the panel](docs/screenshots/popup-drawer.gif)
 
-| Desktop settings | Panel settings |
+| Desktop settings | Drawer settings |
 |---|---|
-| <img src="docs/screenshots/settings-desktop.png" alt="The settings for the desktop icons" width="380"> | <img src="docs/screenshots/settings-panel.png" alt="The settings for the panel drawers" width="380"> |
+| <img src="docs/screenshots/settings-desktop.png" alt="The settings for the desktop icons" width="380"> | <img src="docs/screenshots/settings-panel.png" alt="The settings for the drawers" width="380"> |
 
 ## Requirements
 

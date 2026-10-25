@@ -81,14 +81,19 @@ SPDX-License-Identifier: CC0-1.0
     </screenshot>
     <screenshot>
       <caption>Settings for the desktop icons</caption>
-      <image type="source" width="1180" height="1245">https://raw.githubusercontent.com/wispware/plasma-tidy/main/docs/screenshots/settings-desktop.png</image>
+      <image type="source" width="1313" height="1371">https://raw.githubusercontent.com/wispware/plasma-tidy/main/docs/screenshots/settings-desktop.png</image>
     </screenshot>
     <screenshot>
-      <caption>Settings for the panel drawers</caption>
-      <image type="source" width="1180" height="1245">https://raw.githubusercontent.com/wispware/plasma-tidy/main/docs/screenshots/settings-panel.png</image>
+      <caption>Settings for the drawers</caption>
+      <image type="source" width="1313" height="1371">https://raw.githubusercontent.com/wispware/plasma-tidy/main/docs/screenshots/settings-panel.png</image>
     </screenshot>
   </screenshots>
   <releases>
+    <release version="0.4.0" date="2026-10-25">
+      <description>
+        <p>A search field for the settings, rules that keep the night light off, a fan as a new pop-up look for drawers, a click of your own per drawer, smoother drawers, and a right-click on the hidden desktop opens its menu again.</p>
+      </description>
+    </release>
     <release version="0.3.5" date="2026-10-07">
       <description>
         <p>A drawer's settings have a button that puts a folder in the drawer, for quick access.</p>

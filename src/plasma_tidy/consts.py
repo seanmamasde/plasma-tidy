@@ -9,7 +9,7 @@ from PyQt6.QtCore import Qt
 APP = "plasma-tidy"
 APP_NAME = "Tidy"
 OLD_APP = "autohide-desktop-icons"  # previous name, for carrying over its settings
-VERSION = "0.3.5"
+VERSION = "0.4.0"
 AUTHOR = "Ivar"
 BRAND = "Wispware"
 DESCRIPTION = "Keeps your KDE Plasma desktop, panel and system tray clean."
