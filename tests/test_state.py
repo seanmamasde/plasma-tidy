@@ -166,6 +166,32 @@ class HideAndShow(unittest.TestCase):
         tidy.show()
         self.assertEqual(tidy.saved, {})
 
+    def test_with_hide_after_never_a_shortcut_still_hides(self):
+        tidy = StateTidy(timeout=0)
+        tidy.hide()   # what --hide and the shortcut do
+        self.assertTrue(tidy.hidden)
+        self.assertNotEqual(tidy.plasma.urls[1], "desktop:/")
+
+
+class ShowDesktop(unittest.TestCase):
+    """Show desktop (Meta+D) brings the icons back, unless that is switched off."""
+
+    def hidden(self, **settings):
+        tidy = StateTidy(**settings)
+        tidy.hide()
+        tidy.on_showing_desktop(True)
+        return tidy
+
+    def test_it_brings_them_back(self):
+        tidy = self.hidden()
+        self.assertFalse(tidy.hidden)
+        self.assertEqual(tidy.plasma.urls, {1: "desktop:/"})
+
+    def test_switched_off_they_stay_away(self):
+        tidy = self.hidden(desktop_shows=False)
+        self.assertTrue(tidy.hidden)
+        self.assertNotEqual(tidy.plasma.urls[1], "desktop:/")
+
 
 class FocusMode(unittest.TestCase):
     def tidy(self, **settings):
@@ -328,6 +354,13 @@ class Profiles(unittest.TestCase):
         self.assertIs(self.tidy.plasma.drawer_config["taskClose"], True)
         self.tidy.kwin.load.assert_called_once()   # the corner is KWin's work
         self.tidy.plasma.place_drawer.assert_not_called()
+
+    def test_never_and_show_desktop_off_go_along(self):
+        data = self.same()
+        data["settings"].update(timeout=0, desktop_shows=False)
+        self.tidy.apply_snapshot(data)
+        self.assertEqual(self.tidy.settings.value("timeout"), 0)
+        self.assertIs(self.tidy.settings.value("desktop_shows"), False)
 
     def test_a_file_with_nonsense_in_it_is_taken_as_far_as_it_makes_sense(self):
         self.tidy.apply_snapshot({"settings": {"timeout": "soon"}, "tray": "yes",

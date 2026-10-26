@@ -353,6 +353,12 @@ TRANSLATIONS = {
             "Let op: KDE kan zelf al een actie op die hoek hebben "
             "(Systeeminstellingen → Schermranden).",
         "Screen corner shows:": "Schermhoek toont:",
+        "Show desktop (Meta+D) brings the icons back":
+            "Bureaublad tonen (Meta+D) haalt de pictogrammen terug",
+        "Off: showing the desktop leaves the icons hidden, and moving the mouse while it is "
+        "shown does not bring them back either.":
+            "Uit: het bureaublad tonen laat de pictogrammen verborgen, en de muis bewegen "
+            "terwijl het getoond wordt haalt ze ook niet terug.",
         "Activity in other windows doesn't count": "Activiteit in andere vensters telt niet mee",
         "On: while you work in another window the timer keeps running "
         "and the icons disappear behind your window. Moving the mouse over "
@@ -376,11 +382,12 @@ TRANSLATIONS = {
         "After minimising a window": "Na het minimaliseren van een venster",
         "After minimising or closing a window": "Na het minimaliseren of sluiten van een venster",
         "A panel that is hidden, by Tidy or by itself, comes into view when you put a window "
-        "away, so you can go straight to the next program. It goes again after the time on the Desktop tab, "
-        "and stays while the pointer is on it.":
+        "away, so you can go straight to the next program. It goes again after the time on the Desktop tab "
+        "(10 s when that is Never), and stays while the pointer is on it.":
             "Een paneel dat verborgen is, door Tidy of uit zichzelf, komt in beeld als je een "
             "venster wegzet, zodat je meteen door kunt naar het volgende programma. Het "
-            "verdwijnt weer na de tijd op het tabblad Bureaublad, en blijft zolang de muis erop staat.",
+            "verdwijnt weer na de tijd op het tabblad Bureaublad (10 s als die op Nooit staat), "
+            "en blijft zolang de muis erop staat.",
         "Start at login": "Starten bij inloggen",
         "Language:": "Taal:",
         "System language": "Systeemtaal",
@@ -473,6 +480,7 @@ TRANSLATIONS = {
             "Gepauzeerd — menu open of Plasma in bewerkingsmodus",
         "paused": "pauze",
         "Visible — hiding in:": "Zichtbaar — verbergen over:",
+        "Visible — they stay until you hide them": "Zichtbaar — ze blijven tot je ze verbergt",
         # tray menu
         "Enabled": "Ingeschakeld",
         "Settings…": "Instellingen…",

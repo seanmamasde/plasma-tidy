@@ -3,11 +3,14 @@
 """When do the icons hide: what counts as activity, and what postpones."""
 
 import time
+import types
 import unittest
 
 from tests.fakes import FakeTidy
 
 from plasma_tidy.consts import MODE_ACTIVITY
+from plasma_tidy.core import Tidy
+from plasma_tidy.settings import SettingsDialog
 
 
 class Watcher:
@@ -118,6 +121,79 @@ class BringingTheIconsBack(unittest.TestCase):
         tidy.hidden = tidy.hold_icons = True
         say(tidy, "active")
         self.assertEqual(tidy.shown, 0)
+
+    def test_in_show_desktop_movement_counts_in_click_mode_too(self):
+        tidy = fake()
+        tidy.hidden = tidy.showing_desktop = True
+        self.assertTrue(tidy.idle_needed())
+        say(tidy, "active")
+        self.assertEqual(tidy.shown, 1)
+
+    def test_unless_show_desktop_is_set_not_to_bring_them_back(self):
+        tidy = fake(desktop_shows=False)
+        tidy.hidden = tidy.showing_desktop = True
+        self.assertFalse(tidy.idle_needed())
+        say(tidy, "active")
+        self.assertEqual(tidy.shown, 0)
+
+
+class Shown:
+    """Plays a label or a progress bar of the settings window: keeps what it is told."""
+
+    def setText(self, text):
+        self.text = text
+
+    def setValue(self, value):
+        self.value = value
+
+    def setFormat(self, text):
+        self.format = text
+
+
+class HideAfterNever(unittest.TestCase):
+    """Hide after: Never (0). No timer hides the icons; you still can."""
+
+    def test_no_timer_is_set(self):
+        tidy = fake()
+        say(tidy, "idle")
+        Tidy.schedule(tidy)
+        self.assertIsNotNone(tidy.hide_timer.interval)
+        tidy.settings.setValue("timeout", 0)
+        Tidy.schedule(tidy)
+        self.assertIsNone(tidy.hide_timer.interval)
+
+    def test_the_moment_never_comes(self):
+        for rehide in ("idle", "fixed"):
+            with self.subTest(rehide=rehide):
+                tidy = fake(timeout=0, rehide=rehide)
+                tidy.idle_since = tidy.shown_at = time.monotonic() - 100
+                self.assertEqual(tidy.remaining(), float("inf"))
+                tidy.on_tick()
+                self.assertEqual(tidy.hidden_times, 0)
+
+    def test_the_idle_watcher_only_runs_to_bring_them_back(self):
+        tidy = fake(timeout=0, mode=MODE_ACTIVITY)
+        self.assertFalse(tidy.idle_needed())
+        tidy.hidden = True
+        self.assertTrue(tidy.idle_needed())
+        say(tidy, "active")
+        self.assertEqual(tidy.shown, 1)
+
+    def test_a_double_click_still_hides(self):
+        tidy = fake(timeout=0, double_hides=True)
+        tidy.shown_at = time.monotonic() - 1
+        tidy.on_desktop_double_click()
+        self.assertEqual(tidy.hidden_times, 1)
+
+    def test_a_panel_that_came_up_still_goes_again(self):
+        self.assertEqual(fake(timeout=0).after_time(), 10000)
+        self.assertEqual(fake(timeout=30).after_time(), 30000)
+
+    def test_the_countdown_says_they_stay(self):
+        window = types.SimpleNamespace(autohide=fake(timeout=0), status_label=Shown(),
+                                       bar=Shown())
+        SettingsDialog.update_status(window)
+        self.assertEqual((window.bar.value, window.bar.format), (1000, "—"))
 
 
 class TheIdleWatcher(unittest.TestCase):

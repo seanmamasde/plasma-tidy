@@ -186,7 +186,7 @@ PANEL_PLACES = {"top": "Top panel", "bottom": "Bottom panel", "left": "Left pane
                 "right": "Right panel"}
 # Tidy's own settings that belong to a profile or an export, with their defaults.
 PROFILE_SETTINGS = {"timeout": 10, "mode": "activity", "buttons": "left,right,middle",
-                    "rehide": "idle", "corner": "none", "only_desktop": True,
+                    "rehide": "idle", "corner": "none", "desktop_shows": True, "only_desktop": True,
                     "panel_counts": True, "clicks": "single", "double_hides": False,
                     "hide_widgets": False, "widgets_keep": "", "use_helper": True,
                     "hide_panel": False, "panel_after": "never", "skip_screens": "",

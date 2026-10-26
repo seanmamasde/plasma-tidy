@@ -128,7 +128,7 @@ change something.
 | Setting | What it does | Default |
 | --- | --- | --- |
 | **When the icons hide** | | |
-| Hide after | Seconds without activity before the icons disappear | 10 s |
+| Hide after | Seconds without activity before the icons disappear. *Never* (0 s) leaves them in view until you hide them yourself: with a double-click on the desktop, a shortcut or *Hide now* | 10 s |
 | Activity in other windows doesn't count | The icons hide behind the window you're working in: what you type or do there does not postpone hiding. Moving the mouse over the desktop itself always does | on |
 | Moving over the panel does count | With the setting above: moving the mouse over the panel keeps the icons too, like moving over the desktop | on |
 | A double-click on an empty spot of the desktop hides the icons | Hides them at once, without waiting for the timer; needs the helper widget | off |
@@ -137,6 +137,7 @@ change something.
 | With mouse button | With a click or double-click: which buttons count (left, middle, right) | all three |
 | After that they hide | With a click or double-click: after that time without movement, or after a fixed time even while you move | without movement |
 | Screen corner shows | Moving the mouse into this corner shows the icons | none |
+| Show desktop (Meta+D) brings the icons back | With a click or double-click: showing the desktop brings the icons back, and while it is shown any movement or key press does too. Off: they stay hidden | on |
 | **What hides along** | | |
 | Also hide the panel (taskbar) | Auto-hides the panel while the icons are hidden | off |
 | Also hide the widgets on the desktop | Clocks, notes and other widgets on the desktop go and come with the icons. With widgets on the desktop, a list below it lets you choose per widget: without a tick it stays in view. Needs the helper widget | off, all widgets |
@@ -145,7 +146,9 @@ change something.
 | Hide with a helper widget on the desktop (lighter) | An invisible widget on the desktop makes the icons go and come: at once, without extra memory and without writing to disk. Off: Tidy swaps the desktop's folder for an empty one instead, which needs nothing inside Plasma. See *How it works* | on |
 | Fade the icons in and out | The icons fade away and back instead of switching at once, in the time you set; needs the helper widget | off, 300 ms |
 
-*Show desktop* (Meta+D) always brings the icons back.
+*Show desktop* (Meta+D) brings the icons back, and while the desktop is shown that way, any
+movement or key press does too. With a click or double-click you can switch that off: then
+Show desktop leaves the icons hidden.
 
 If the screen corner you pick already has an action in System Settings → Screen Edges, both
 will fire.
@@ -229,7 +232,7 @@ The *Panel* tab is about the panel as a whole.
 
 | Setting | What it does | Default |
 | --- | --- | --- |
-| Show the panel again | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide, and stays while the pointer is on it | never |
+| Show the panel again | A panel that is hidden, by Tidy or by itself, comes into view after you minimise a window, or after you minimise or close one, so you can go straight to the next program. It goes again after the time the icons take to hide (10 s when that is *Never*), and stays while the pointer is on it | never |
 
 *Balloons and previews* is about what comes up when you point at something in the
 panel. The balloons switch and the pop-up with or without a preview are Plasma's own settings,

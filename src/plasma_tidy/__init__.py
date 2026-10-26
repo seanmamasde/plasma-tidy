@@ -22,7 +22,7 @@ a click on the desktop, a screen corner or a shortcut.
   desktop is the active window and when the pointer moves over the desktop
   (for the setting "Activity in other windows doesn't count").
 - Show desktop (Meta+D) brings the icons back, and every activity counts in
-  that view.
+  that view, unless that is switched off (desktop_shows).
 
 Panel:
 

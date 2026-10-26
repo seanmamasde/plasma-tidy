@@ -258,7 +258,8 @@ class SettingsDialog(QDialog):
         form = QFormLayout(box)
         layout.addWidget(box)
 
-        self.timeout = QSpinBox(suffix=" s", minimum=3, maximum=3600)
+        self.timeout = QSpinBox(suffix=" s", minimum=0, maximum=3600)
+        self.timeout.setSpecialValueText(tr("Never"))
         self.timeout.setValue(settings.value("timeout", 10, int))
         form.addRow(tr("Hide after:"), self.timeout)
 
@@ -335,6 +336,13 @@ class SettingsDialog(QDialog):
                                   "Note: KDE may already have an action on that corner "
                                   "(System Settings → Screen Edges)."))
         form.addRow(tr("Screen corner shows:"), self.corner)
+
+        self.desktop_shows = QCheckBox(tr("Show desktop (Meta+D) brings the icons back"))
+        self.desktop_shows.setChecked(settings.value("desktop_shows", True, bool))
+        self.desktop_shows.setToolTip(tr("Off: showing the desktop leaves the icons hidden, and "
+                                         "moving the mouse while it is shown does not bring them "
+                                         "back either."))
+        form.addRow(self.desktop_shows)
 
         box = QGroupBox(tr("What hides along"))
         form = QFormLayout(box)
@@ -429,7 +437,8 @@ class SettingsDialog(QDialog):
         self.panel_after.setToolTip(tr(
             "A panel that is hidden, by Tidy or by itself, comes into view when you put a "
             "window away, so you can go straight to the next program. It goes again after "
-            "the time on the Desktop tab, and stays while the pointer is on it."))
+            "the time on the Desktop tab (10 s when that is Never), and stays while the "
+            "pointer is on it."))
         form.addRow(tr("Show the panel again:"), self.panel_after)
 
         panel_layout.addWidget(self.drawer_tab.tips_box)
@@ -620,6 +629,8 @@ class SettingsDialog(QDialog):
         click = self.chosen_mode() == MODE_CLICK
         self.back_form.setRowVisible(self.buttons_row, click)
         self.back_form.setRowVisible(self.rehide, click)
+        # With movement, Meta+D is a key press and brings the icons back by itself.
+        self.back_form.setRowVisible(self.desktop_shows, click)
         # In click mode at least one button must be chosen.
         valid = not click or any(b.isChecked() for b in self.buttons.values())
         helper = self.use_helper.isChecked()
@@ -659,6 +670,10 @@ class SettingsDialog(QDialog):
                 else tr("Hidden — waiting for mouse movement or a key press"))
             self.bar.setValue(0)
             self.bar.setFormat("0 s")
+        elif a.never_hides():
+            self.status_label.setText(tr("Visible — they stay until you hide them"))
+            self.bar.setValue(1000)
+            self.bar.setFormat("—")
         elif a.busy():
             self.status_label.setText(tr("Paused — menu open or Plasma in edit mode"))
             self.bar.setValue(1000)

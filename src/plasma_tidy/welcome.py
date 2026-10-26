@@ -43,7 +43,8 @@ class Welcome(QDialog):
         layout.addWidget(intro)
 
         form = QFormLayout()
-        self.timeout = QSpinBox(suffix=" s", minimum=3, maximum=3600)
+        self.timeout = QSpinBox(suffix=" s", minimum=0, maximum=3600)
+        self.timeout.setSpecialValueText(tr("Never"))
         self.timeout.setValue(settings.value("timeout", 10, int))
         form.addRow(tr("Hide the icons after:"), self.timeout)
         self.mode = QComboBox()

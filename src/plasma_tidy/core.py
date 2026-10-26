@@ -197,13 +197,15 @@ class Tidy(QObject):
 
     def schedule(self):
         """Set the timer for the moment the icons are due to hide, or stop it when there is
-        nothing to wait for: icons hidden, Tidy off, or you are busy at the desktop."""
+        nothing to wait for: icons hidden, Tidy off, hiding set to never, or you are busy at
+        the desktop."""
         timer = self.__dict__.get("hide_timer")
         if timer is None:
             return  # still starting up
         self.update_idle()
         waiting = self.fixed_rehide() or self.idle_since is not None
-        if self.hidden or self.peeking or not self.enabled_action.isChecked() or not waiting:
+        if (self.hidden or self.peeking or not self.enabled_action.isChecked() or not waiting
+                or self.never_hides()):
             timer.stop()
         else:
             timer.start(int(self.remaining() * 1000) + 20)
@@ -213,6 +215,11 @@ class Tidy(QObject):
 
     def fixed_rehide(self):
         return self.mode() == MODE_CLICK and self.settings.value("rehide", REHIDE_IDLE) == REHIDE_FIXED
+
+    def never_hides(self):
+        """Hide after: Never (0). No timer hides the icons then; they only go when you hide
+        them, with a double-click, a shortcut or Hide now."""
+        return self.settings.value("timeout", 10, int) <= 0
 
     def counts_activity(self):
         """Does mouse/keyboard input count right now? Not while you work in another window;
@@ -263,7 +270,10 @@ class Tidy(QObject):
         self.idle_since = None if self.counts_activity() else time.monotonic()
 
     def remaining(self):
-        """Seconds until hiding (only meaningful while the icons are visible)."""
+        """Seconds until hiding (only meaningful while the icons are visible); endless when
+        they never hide by themselves."""
+        if self.never_hides():
+            return float("inf")
         timeout = self.settings.value("timeout", 10, int)
         now = time.monotonic()
         if self.fixed_rehide():
@@ -682,9 +692,14 @@ class Tidy(QObject):
     @pyqtSlot(bool)
     def on_showing_desktop(self, showing):
         self.showing_desktop = showing
-        if showing and self.hidden and not self.hold_icons:
+        if self.showing_desktop_counts() and self.hidden and not self.hold_icons:
             self.show()
         self.update_idle()
+
+    def showing_desktop_counts(self):
+        """Show desktop (Meta+D) is on, and set to bring the icons back: then any movement or
+        key press in that view does too."""
+        return self.showing_desktop and self.settings.value("desktop_shows", True, bool)
 
     # --- idle -------------------------------------------------------------
 
@@ -707,15 +722,17 @@ class Tidy(QObject):
 
     def idle_needed(self):
         """Is there anything to learn from the idle watcher right now? With the icons in view:
-        when you stop moving. With the icons hidden: only if movement brings them back. And
-        nothing at all while what you do does not count: in another window (the time then
-        runs from when you left the desktop, and the KWin helper tells of the pointer over
-        the desktop), or with a fixed time until the icons hide again."""
+        when you stop moving, unless they never hide by themselves. With the icons hidden: only
+        if movement brings them back. And nothing at all while what you do does not count: in
+        another window (the time then runs from when you left the desktop, and the KWin helper
+        tells of the pointer over the desktop), or with a fixed time until the icons hide
+        again."""
         if self.quitting or not self.enabled_action.isChecked() or not self.counts_activity():
             return False
         if not self.hidden:
-            return not self.fixed_rehide()
-        return not self.hold_icons and (self.mode() == MODE_ACTIVITY or self.showing_desktop)
+            return not self.fixed_rehide() and not self.never_hides()
+        return not self.hold_icons and (self.mode() == MODE_ACTIVITY
+                                        or self.showing_desktop_counts())
 
     def update_idle(self):
         """Run the idle watcher only while it is needed. It starts a small process each time
@@ -761,7 +778,7 @@ class Tidy(QObject):
                     continue
                 self.idle_since = None
                 if self.hidden and not self.hold_icons and (self.mode() == MODE_ACTIVITY
-                                                       or self.showing_desktop):
+                                                       or self.showing_desktop_counts()):
                     self.show()
 
     # --- tray -------------------------------------------------------------
@@ -965,6 +982,7 @@ class Tidy(QObject):
         self.settings.setValue("buttons", dlg.chosen_buttons())
         self.settings.setValue("rehide", dlg.rehide.currentData())
         self.settings.setValue("corner", dlg.corner.currentData())
+        self.settings.setValue("desktop_shows", dlg.desktop_shows.isChecked())
         self.settings.setValue("hide_panel", dlg.panel.isChecked())
         self.settings.setValue("panel_after", dlg.panel_after.currentData())
         self.settings.setValue("only_desktop", dlg.only_desktop.isChecked())
@@ -1070,7 +1088,9 @@ class Tidy(QObject):
         self.after_timer.start(self.after_time())
 
     def after_time(self):
-        return max(1, self.settings.value("timeout", 10, int)) * 1000
+        # With Never the panel still goes again, after the default time.
+        timeout = self.settings.value("timeout", 10, int)
+        return (timeout if timeout > 0 else PROFILE_SETTINGS["timeout"]) * 1000
 
     def on_panel_pointer(self, on):
         """Told by the KWin helper: the pointer came onto a panel, or left it."""

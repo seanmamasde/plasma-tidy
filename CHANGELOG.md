@@ -1,5 +1,15 @@
 # Changes
 
+## Not released yet
+
+- *Hide after* can be set to *Never* (0 s): the icons then stay in view until you hide them
+  yourself, with a double-click on the desktop, a shortcut or *Hide now*, and come back as
+  before. A panel that comes into view when you put a window away goes again after 10 s then.
+- *Show desktop (Meta+D) brings the icons back*, a new choice under *How they come back*, with
+  a click or a double-click. Switched off, Show desktop leaves the icons hidden, and moving the
+  mouse while the desktop is shown that way does not bring them back either. It is on by
+  default, so nothing changes unless you switch it off.
+
 ## 0.4.0 — 2026-10-25
 
 - A right-click on the desktop while the icons are hidden opens the desktop's menu again.
